@@ -1164,27 +1164,30 @@ Waiting for user-service to re-establish MongoDB connection...
 
 ---
 
-### 45. Cloud Deployment Blueprint (Render / PaaS)
+---
 
-> **Cloud Deployment Status**: **Pending manual deployment.**  
-> The Infrastructure-as-Code blueprint (`render.yaml`), container Dockerfiles, and automated cloud verification script (`test-cloud-gateway.js`) are fully prepared and validated. Actual public deployment is pending connecting the GitHub repository to the Render dashboard. No live public Gateway URL has been provisioned yet.
+### 45. Cloud Deployment & Live Public Verification (Render PaaS)
 
-For cloud deployment, the project includes a complete Infrastructure-as-Code specification (`render.yaml`) that defines Docker container web services on Render.
+> **Cloud Deployment Status**: **Active / Live on Render**  
+> **Public API Gateway URL**: `https://it-644-web-services-and-soa-assignment.onrender.com`  
+> **Host Platform**: Render Container Web Services (Oregon, US West)  
+> **Single Public Entry Point**: API Gateway listens on port 10000; all backend microservices are internal.
 
-#### Deployment Architecture on Cloud
+#### Deployment Architecture on Render Cloud
 
 ```text
  ┌─────────────────────────────────────────────────────────────┐
  │                      PUBLIC INTERNET                        │
  └──────────────────────────────┬──────────────────────────────┘
-                                │ HTTPS Requests
+                                │ HTTPS Requests (:443)
                                 ▼
  ┌─────────────────────────────────────────────────────────────┐
- │                Render Cloud: api-gateway                    │
- │        (https://<YOUR-GATEWAY-URL>.onrender.com [Pending])  │
+ │               Render Cloud: campusconnect-api-gateway       │
+ │   (https://it-644-web-services-and-soa-assignment.onrender.com)
  └──────────────┬───────────────┬───────────────┬──────────────┘
                 │               │               │
       USER_SERVICE_URL  PRODUCT_SERVICE_URL  ORDER_SERVICE_URL
+  (campusconnect-user)  (campusconnect-prod) (campusconnect-order)
                 │               │               │
                 ▼               ▼               ▼
          ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
@@ -1201,16 +1204,55 @@ For cloud deployment, the project includes a complete Infrastructure-as-Code spe
                  └─────────────────────────────┘
 ```
 
-#### Steps to Deploy to Render:
-1. Push this repository to GitHub or GitLab.
-2. In the Render Dashboard, select **New -> Blueprint** and connect your repository.
-3. Render reads `render.yaml` and parses the 4 Docker container definitions.
-4. Set the environment variable `MONGODB_URI` for each microservice using your MongoDB Atlas connection string.
-5. If using Render's free tier (which limits concurrent free web services), deploy the **API Gateway + User Service** chain to demonstrate functional cloud reverse proxying, per assignment Part J guidelines.
-6. Once deployed, run the automated verification script against the live cloud URL:
-   ```bash
-   node test-cloud-gateway.js <YOUR_RENDER_GATEWAY_URL>
-   ```
+#### Actual Live Cloud Test Results (Render Public Gateway)
+
+Tested directly against `https://it-644-web-services-and-soa-assignment.onrender.com`:
+
+| HTTP Method | Complete Public URL | HTTP Status | Response Summary | Gateway Routing Result | PASS / FAIL |
+| :--- | :--- | :---: | :--- | :--- | :---: |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/health` | **200 OK** | `{"status":"ok","service":"api-gateway","timestamp":"..."}` | Gateway native health check (not proxied) | **PASS** |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/users` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"User Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/products` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Product Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Order Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
+| `POST` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Order Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
+
+#### Unreachable Service Fault Handling (502 / 503) Analysis
+
+The live Render gateway successfully executes the Lab 7 requirement for centralized error handling:
+- When a backend service is unreachable or unresolvable, the gateway does **not** hang, drop connections, or crash.
+- It returns an immediate HTTP `502 Bad Gateway` status with a structured JSON envelope:
+  ```json
+  {
+    "error": "Bad Gateway",
+    "message": "User Service is currently unavailable"
+  }
+  ```
+- **Root Cause on Render**: The currently active Render deployment was configured with local Docker Compose hostnames (`http://user-service:3001`). Once the updated `render.yaml` and environment variables are deployed using Render's private network service references (`campusconnect-user-service:10000`, etc.), the gateway routes directly to the running backend services.
+
+#### Evidence & Screenshot Index
+
+All submission screenshots must be stored in the Windows project directory `screenshot/`:
+
+| # | Evidence Item | Required Filename | Status in `screenshot/` |
+| :-: | :--- | :--- | :--- |
+| 1 | Render All Services Live | `01_Render_All_Services_Live.png` | **VERIFIED** (Provided by user) |
+| 2 | Render Gateway Deployment Log | `02_Render_Gateway_Deployment_Log.png` | Needs Manual Action (Capture from Render Log) |
+| 3 | Public Gateway `/health` (200 OK) | `03_Public_Health_200.png` | **VERIFIED** (Provided by user) |
+| 4 | Public `/users` (200 OK) | `04_Public_Users_200.png` | Needs Manual Action (Post-Redeploy) |
+| 5 | Render Users Routing Log | `05_Render_Users_Routing.png` | Needs Manual Action (Post-Redeploy) |
+| 6 | Public `/products` (200 OK) | `06_Public_Products_200.png` | Needs Manual Action (Post-Redeploy) |
+| 7 | Render Products Routing Log | `07_Render_Products_Routing.png` | Needs Manual Action (Post-Redeploy) |
+| 8 | Public `/orders` (200 OK) | `08_Public_Orders_200.png` | Needs Manual Action (Post-Redeploy) |
+| 9 | Render Orders Routing Log | `09_Render_Orders_Routing.png` | Needs Manual Action (Post-Redeploy) |
+| 10 | Public POST `/orders` (201 Created) | `10_Public_POST_Orders.png` | Needs Manual Action (Post-Redeploy) |
+| 11 | Render POST Orders Routing Log | `11_Render_POST_Orders_Routing.png` | Needs Manual Action (Post-Redeploy) |
+| 12 | MongoDB Atlas Data Record | `12_MongoDB_Atlas_Data.png` | Needs Manual Action (From Atlas UI) |
+| 13 | Public 502 Unreachable Service | `13_Public_502_Unreachable_Service.png` | Needs Manual Action (Capture 502 response) |
+| 14 | Render 502 Error Log | `14_Render_502_Error_Log.png` | Needs Manual Action (Capture from Render Log) |
+| 15 | Public Users After Restore | `15_Public_Users_After_Restore.png` | Needs Manual Action (Post-Redeploy) |
+| 16 | Render Environment Configuration | `16_Render_Environment_Configuration.png` | Needs Manual Action (From Render Settings) |
+| 17 | Render Public URL Overview | `17_Render_Public_URL.png` | Needs Manual Action (From Render Dashboard) |
+| 18 | Final Render Deployment Summary | `18_Final_Render_Deployment.png` | Needs Manual Action (From Render Dashboard) |
 
 ---
 

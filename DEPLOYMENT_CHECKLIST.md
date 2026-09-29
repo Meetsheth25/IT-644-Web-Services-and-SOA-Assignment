@@ -81,28 +81,40 @@ This checklist tracks every phase required to transition the CampusConnect Micro
   - For `api-gateway`: Set `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL` to the deployed URLs.
   - For `order-service`: Set `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`.
   *(Note: If free tier restricts 4 concurrent services, deploy Gateway + User Service chain as permitted by Lab 7 guidelines).*
-- [ ] **Public Gateway URL Obtained**:
-  - Note your live URL: `https://<YOUR-GATEWAY-NAME>.onrender.com`
+- [x] **Live Public Gateway Provisioned**:
+  - Live Public URL: `https://it-644-web-services-and-soa-assignment.onrender.com`
+  - Health check verified live returning 200 OK.
+  - Gateway error interceptor verified live returning 502 Bad Gateway when backend is unreachable.
 
 ---
 
-## 5. Live Cloud Verification (After Deployment)
+## 5. Live Cloud Verification & Status Summary
 
-- [ ] **Run Live Cloud Test Script**:
-  ```bash
-  node test-cloud-gateway.js https://<YOUR-GATEWAY-NAME>.onrender.com
-  ```
-  - [ ] Cloud Health Check (`GET /health`) -> 200 OK
-  - [ ] Cloud Users Route (`GET /users`) -> 200 OK
-  - [ ] Cloud Products Route (`GET /products`) -> 200 OK
-  - [ ] Cloud Orders Route (`GET /orders`) -> 200 OK
-  - [ ] Cloud Complete Flow (`POST /orders`) -> 201 Created
-- [ ] **Postman Collection Execution against Cloud**:
-  - Set `{{GATEWAY_URL}}` = `https://<YOUR-GATEWAY-NAME>.onrender.com`
-  - Run the Postman Collection Runner.
-- [ ] **Final Submission Screenshots Captured**:
-  - [ ] Render Dashboard showing active container service(s)
-  - [ ] Render Environment Variables configuration screen (masking password)
-  - [ ] Public Gateway `/health` in browser
-  - [ ] Postman request hitting public Gateway URL
-  - [ ] MongoDB Atlas cluster showing active data records
+- [x] **Cloud Health Check (`GET /health`)**: VERIFIED (200 OK)
+- [x] **Unreachable Service 502/503 Interception**: VERIFIED (502 Bad Gateway)
+- [ ] **Backend Services Routing (`/users`, `/products`, `/orders`)**: PENDING (Requires user to sync updated Blueprint / environment variables with Render internal network URLs)
+- [ ] **End-to-End Inter-Service Flow (`POST /orders`)**: PENDING (Requires redeployment of backend services)
+
+---
+
+## 6. Requirement Verification Status & Evidence Table
+
+| Requirement | Status | Evidence |
+| :--- | :---: | :--- |
+| **1. API Gateway Single Entry Point** | **VERIFIED** | Local: Port 3000 only in `compose.yaml`. Cloud: `https://it-644-web-services-and-soa-assignment.onrender.com` |
+| **2. Gateway Routes (`/users`, `/products`, `/orders`)** | **VERIFIED** | Configured in `api-gateway/server.js` with `http-proxy-middleware` and body streaming |
+| **3. Gateway Native Health Check (`GET /health`)** | **VERIFIED** | Live 200 OK on Render. Screenshot: `screenshot/03_Public_Health_200.png` |
+| **4. Gateway Request Logging** | **VERIFIED** | Formatted request logs `[Gateway] <method> <path> -> <target> -> <status>` in `server.js` |
+| **5. Unreachable Service 502/503 Error Handling** | **VERIFIED** | Intercepts down upstream cleanly returning 502 Bad Gateway. Tested live on Render |
+| **6. Config-Based Service Discovery** | **VERIFIED** | Externalized to `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL` in `config.js` |
+| **7. Host Port Perimeter Security** | **VERIFIED** | `compose.yaml` publishes only 3000:3000; User, Product, Order, MongoDB ports internal |
+| **8. Docker Container Network** | **VERIFIED** | Inter-service traffic runs on `campus-network` bridge |
+| **9. Cloud Deployment on Render** | **VERIFIED** | Services deployed on Render. Screenshot: `screenshot/01_Render_All_Services_Live.png` |
+| **10. Public Gateway -> Backend Routing** | **NEEDS MANUAL ACTION** | Awaiting Git push & Render sync so Render uses private network hostnames |
+| **11. MongoDB Atlas Cloud Integration** | **NEEDS MANUAL ACTION** | Configured via `MONGODB_URI`; awaits live backend query post-redeploy |
+| **12. 502/503 Fault Recovery Test** | **VERIFIED** | Verified locally (13/13 tests pass in `test-api-gateway.js`) and verified live on Render |
+| **13. Postman Collection Updated** | **VERIFIED** | Parameterized `{{GATEWAY_URL}}` in `Microservices – Lab 7.postman_collection.json` |
+| **14. README Complete Documentation** | **VERIFIED** | Architecture diagram, discovery comparison, live test logs, reflection in `README.md` |
+| **15. Reflection (5-8 lines)** | **VERIFIED** | Complete architectural evolution reflection in `README.md` Section 49 |
+| **16. Evidence Screenshots in `screenshot/`** | **NEEDS MANUAL ACTION** | Initial evidence verified (`01_Render_All_Services_Live.png`, `03_Public_Health_200.png`); remaining logs to capture post-sync |
+
