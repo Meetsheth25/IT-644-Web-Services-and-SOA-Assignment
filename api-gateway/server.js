@@ -50,7 +50,7 @@ function createServiceProxy(service) {
     on: {
       proxyReq: fixRequestBody,
       error: (err, req, res) => {
-        console.error(`[Gateway Error] ${req.method} ${req.originalUrl} -> ${service.serviceId} unreachable: ${err.message}`);
+        console.error(`[Gateway Error] ${req.method} ${req.originalUrl} -> ${service.serviceId} (${service.url}) unreachable: ${err.message} [code: ${err.code || 'UNKNOWN'}]`);
         if (!res.headersSent) {
           const isTimeout = err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT';
           const statusCode = isTimeout ? 503 : 502;

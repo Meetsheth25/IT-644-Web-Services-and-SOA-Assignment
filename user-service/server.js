@@ -4,9 +4,9 @@ try {
   dns.setDefaultResultOrder('ipv4first');
 } catch (e) {}
 
-// For Atlas SRV lookup on networks where local ISP/router DNS fails to resolve SRV records
-const rawUserMongoUri = process.env.MONGODB_URI || process.env.USER_MONGODB_URI || '';
-if (rawUserMongoUri.startsWith('mongodb+srv://') || process.env.CUSTOM_DNS) {
+// For Atlas SRV lookup on local networks where local ISP/router DNS fails to resolve SRV records
+// Guarded so it never overrides container DNS on Docker or Render private networks
+if (process.env.CUSTOM_DNS === 'true') {
   try {
     dns.setServers(['8.8.8.8', '8.8.4.4']);
   } catch (e) {}
