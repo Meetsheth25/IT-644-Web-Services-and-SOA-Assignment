@@ -1,0 +1,430 @@
+{
+  "info": {
+    "_postman_id": "8b4f1c23-69f2-4d23-a9bc-4f39502d0c42",
+    "name": "Microservices – Lab 7",
+    "description": "Postman Collection for IT 644 Web Services & SOA — Lab 7: API Gateway, Configuration-Based Service Discovery & Cloud Deployment.\nAll requests target the unified API Gateway entry point ({{GATEWAY_URL}}).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "GATEWAY_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Gateway",
+      "item": [
+        {
+          "name": "GET /health (Gateway Health Check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/health",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["health"]
+            },
+            "description": "Checks the native health status of the API Gateway without proxying."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. User Routes",
+      "item": [
+        {
+          "name": "GET /users (All Users via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "GET /users/:id (User by ID via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users/{{userId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /users (Create User via Gateway)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lab 7 Test User\",\n  \"email\": \"lab7.user@campusconnect.edu\",\n  \"role\": \"Student\",\n  \"department\": \"Information Technology\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "PUT /users/:id (Update User via Gateway)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lab 7 Updated User\",\n  \"department\": \"Cloud Computing\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users/{{userId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /users/:id (Delete User via Gateway)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users/{{userId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Product Routes",
+      "item": [
+        {
+          "name": "GET /products (All Products via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "GET /products/:id (Product by ID via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products/{{productId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products", "{{productId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /products (Create Product via Gateway)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mechanical Keyboard\",\n  \"price\": 3500,\n  \"category\": \"Electronics\",\n  \"stock\": 15\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "PUT /products/:id (Update Product via Gateway)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 3200,\n  \"stock\": 20\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products/{{productId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products", "{{productId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /products/:id (Delete Product via Gateway)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products/{{productId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products", "{{productId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Order Routes",
+      "item": [
+        {
+          "name": "GET /orders (All Orders via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "GET /orders/:id (Order by ID via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders/{{orderId}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders", "{{orderId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /orders (Place Order - Full Inter-Service via Gateway)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"productId\": 1,\n  \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders"]
+            },
+            "description": "Gateway routes to Order Service, which communicates synchronously with User Service and Product Service before saving to MongoDB Atlas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Negative Tests",
+      "item": [
+        {
+          "name": "GET /unknown-route (Gateway 404 Not Found)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/unknown-route",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["unknown-route"]
+            }
+          }
+        },
+        {
+          "name": "GET /users/999999 (Nonexistent User -> 404 from Upstream)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users/999999",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users", "999999"]
+            }
+          }
+        },
+        {
+          "name": "POST /users (Invalid Email Format -> 400 Validation)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid User\",\n  \"email\": \"not-an-email\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "POST /orders (Referencing Nonexistent User -> 404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 999999,\n  \"productId\": 1,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Resilience Tests",
+      "item": [
+        {
+          "name": "GET /users (Target Service Down -> 502 Bad Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users"]
+            },
+            "description": "When user-service container is stopped, Gateway must return clean HTTP 502 with JSON: {\"error\":\"Bad Gateway\",\"message\":\"User Service is currently unavailable\"}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Cloud Gateway Tests",
+      "item": [
+        {
+          "name": "GET /health (Cloud Gateway Health Check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/health",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "GET /users (Cloud Gateway Users)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/users",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "GET /products (Cloud Gateway Products)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/products",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "GET /orders (Cloud Gateway Orders)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "POST /orders (Cloud Gateway Complete Flow)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"productId\": 1,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/orders",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

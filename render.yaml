@@ -1,0 +1,121 @@
+# ==============================================================================
+# LAB 7: RENDER CLOUD BLUEPRINT SPECIFICATION (Infrastructure-as-Code)
+# ==============================================================================
+# This blueprint defines the container deployment for the CampusConnect
+# Microservices Architecture and API Gateway on Render (https://render.com).
+#
+# ARCHITECTURAL FLOW:
+# Client / Postman -> Public API Gateway -> User / Product / Order Services -> MongoDB Atlas
+#
+# IMPORTANT:
+# - NO SECRETS ARE STORED IN THIS FILE.
+# - Environment variables marked with `sync: false` must be populated in the
+#   Render Dashboard when creating the Blueprint instance.
+# - Each service dynamically listens on `process.env.PORT` provided by Render.
+# - Inter-service communication on Render can use either:
+#     Option 1: Internal service hostname (e.g. http://campusconnect-user-service:3001)
+#     Option 2: Public Render HTTPS URL (e.g. https://campusconnect-user-service.onrender.com)
+#
+# FREE TIER POLICY:
+# Render allows free container deployments. If free-tier account limits restrict
+# running 4 web services concurrently, deploy the Gateway + User Service chain
+# as permitted by Section 4 & Part J of the Lab 7 specification.
+# ==============================================================================
+
+services:
+  # ============================================================================
+  # 1. API GATEWAY (Public Facing Single Entry Point)
+  # ============================================================================
+  - type: web
+    name: campusconnect-api-gateway
+    env: docker
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: ./api-gateway
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: USER_SERVICE_URL
+        sync: false
+        # Enter your deployed user service URL, for example:
+        # https://campusconnect-user-service.onrender.com
+        # or internal: http://campusconnect-user-service:3001
+      - key: PRODUCT_SERVICE_URL
+        sync: false
+        # Enter your deployed product service URL, for example:
+        # https://campusconnect-product-service.onrender.com
+        # or internal: http://campusconnect-product-service:3002
+      - key: ORDER_SERVICE_URL
+        sync: false
+        # Enter your deployed order service URL, for example:
+        # https://campusconnect-order-service.onrender.com
+        # or internal: http://campusconnect-order-service:3003
+
+  # ============================================================================
+  # 2. USER SERVICE (Backend Microservice)
+  # ============================================================================
+  - type: web
+    name: campusconnect-user-service
+    env: docker
+    dockerfilePath: ./user-service/Dockerfile
+    dockerContext: ./user-service
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: MONGODB_URI
+        sync: false
+        # Paste your MongoDB Atlas user_db connection string:
+        # mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/user_db?retryWrites=true&w=majority
+
+  # ============================================================================
+  # 3. PRODUCT SERVICE (Backend Microservice)
+  # ============================================================================
+  - type: web
+    name: campusconnect-product-service
+    env: docker
+    dockerfilePath: ./product-service/Dockerfile
+    dockerContext: ./product-service
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 3002
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: MONGODB_URI
+        sync: false
+        # Paste your MongoDB Atlas product_db connection string:
+        # mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/product_db?retryWrites=true&w=majority
+
+  # ============================================================================
+  # 4. ORDER SERVICE (Backend Microservice)
+  # ============================================================================
+  - type: web
+    name: campusconnect-order-service
+    env: docker
+    dockerfilePath: ./order-service/Dockerfile
+    dockerContext: ./order-service
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 3003
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: MONGODB_URI
+        sync: false
+        # Paste your MongoDB Atlas order_db connection string:
+        # mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/order_db?retryWrites=true&w=majority
+      - key: USER_SERVICE_URL
+        sync: false
+        # Enter your deployed user service URL
+      - key: PRODUCT_SERVICE_URL
+        sync: false
+        # Enter your deployed product service URL

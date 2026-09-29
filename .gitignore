@@ -1,0 +1,38 @@
+# Environment Variables (Secrets)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build Artifacts
+dist/
+build/
+target/
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+{
+  "name": "student-express-api",
+  "version": "1.0.0",
+  "description": "Lab 3 - RESTful Student Management Web Service in Express.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "mongoose": "^9.9.4",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
