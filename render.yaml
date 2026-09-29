@@ -27,10 +27,11 @@ services:
   # 1. API GATEWAY (Public Facing Single Entry Point)
   # ============================================================================
   - type: web
-    name: campusconnect-api-gateway
+    name: it-644-web-services-and-soa-assignment
     env: docker
-    dockerfilePath: ./api-gateway/Dockerfile
-    dockerContext: ./api-gateway
+    rootDir: api-gateway
+    dockerfilePath: Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /health
@@ -61,8 +62,9 @@ services:
   - type: web
     name: campusconnect-user-service
     env: docker
-    dockerfilePath: ./user-service/Dockerfile
-    dockerContext: ./user-service
+    rootDir: user-service
+    dockerfilePath: Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /health
@@ -82,8 +84,9 @@ services:
   - type: web
     name: campusconnect-product-service
     env: docker
-    dockerfilePath: ./product-service/Dockerfile
-    dockerContext: ./product-service
+    rootDir: product-service
+    dockerfilePath: Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /health
@@ -103,8 +106,9 @@ services:
   - type: web
     name: campusconnect-order-service
     env: docker
-    dockerfilePath: ./order-service/Dockerfile
-    dockerContext: ./order-service
+    rootDir: order-service
+    dockerfilePath: Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /health
