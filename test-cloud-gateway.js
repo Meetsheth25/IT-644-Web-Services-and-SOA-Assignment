@@ -133,8 +133,14 @@ async function runCloudVerification() {
     console.log('\n======================================================================');
     console.log(`  CLOUD TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
     console.log('======================================================================\n');
+    if (failed > 0) {
+      process.exit(1);
+    } else {
+      process.exit(0);
+    }
   } catch (err) {
     console.error('Fatal error during cloud verification:', err.message);
+    process.exit(1);
   }
 }
 

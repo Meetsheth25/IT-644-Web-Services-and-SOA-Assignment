@@ -33,26 +33,27 @@ services:
     dockerContext: ./api-gateway
     plan: free
     region: oregon
+    healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 3000
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: USER_SERVICE_URL
-        sync: false
-        # Enter your deployed user service URL, for example:
-        # https://campusconnect-user-service.onrender.com
-        # or internal: http://campusconnect-user-service:3001
+        fromService:
+          type: web
+          name: campusconnect-user-service
+          property: hostport
       - key: PRODUCT_SERVICE_URL
-        sync: false
-        # Enter your deployed product service URL, for example:
-        # https://campusconnect-product-service.onrender.com
-        # or internal: http://campusconnect-product-service:3002
+        fromService:
+          type: web
+          name: campusconnect-product-service
+          property: hostport
       - key: ORDER_SERVICE_URL
-        sync: false
-        # Enter your deployed order service URL, for example:
-        # https://campusconnect-order-service.onrender.com
-        # or internal: http://campusconnect-order-service:3003
+        fromService:
+          type: web
+          name: campusconnect-order-service
+          property: hostport
 
   # ============================================================================
   # 2. USER SERVICE (Backend Microservice)
@@ -64,9 +65,10 @@ services:
     dockerContext: ./user-service
     plan: free
     region: oregon
+    healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 3001
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: MONGODB_URI
@@ -84,9 +86,10 @@ services:
     dockerContext: ./product-service
     plan: free
     region: oregon
+    healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 3002
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: MONGODB_URI
@@ -104,9 +107,10 @@ services:
     dockerContext: ./order-service
     plan: free
     region: oregon
+    healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 3003
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: MONGODB_URI
@@ -114,8 +118,12 @@ services:
         # Paste your MongoDB Atlas order_db connection string:
         # mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/order_db?retryWrites=true&w=majority
       - key: USER_SERVICE_URL
-        sync: false
-        # Enter your deployed user service URL
+        fromService:
+          type: web
+          name: campusconnect-user-service
+          property: hostport
       - key: PRODUCT_SERVICE_URL
-        sync: false
-        # Enter your deployed product service URL
+        fromService:
+          type: web
+          name: campusconnect-product-service
+          property: hostport

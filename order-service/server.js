@@ -20,8 +20,23 @@ const app = express();
 const PORT = process.env.PORT || process.env.ORDER_SERVICE_PORT || 3003;
 const MONGODB_URI = process.env.MONGODB_URI || process.env.ORDER_MONGODB_URI || 'mongodb://localhost:27017/order_db';
 
-const USER_SERVICE_URL = (process.env.USER_SERVICE_URL || 'http://localhost:3001').replace(/\/+$/, '');
-const PRODUCT_SERVICE_URL = (process.env.PRODUCT_SERVICE_URL || 'http://localhost:3002').replace(/\/+$/, '');
+function formatServiceUrl(inputUrl, defaultUrl) {
+  if (!inputUrl || typeof inputUrl !== 'string' || inputUrl.trim() === '') {
+    return defaultUrl;
+  }
+  let url = inputUrl.trim();
+  if (!/^https?:\/\//i.test(url)) {
+    url = `http://${url}`;
+  }
+  return url.replace(/\/+$/, '');
+}
+
+const isRender = process.env.RENDER === 'true';
+const defaultUserUrl = isRender ? 'http://campusconnect-user-service:10000' : 'http://localhost:3001';
+const defaultProductUrl = isRender ? 'http://campusconnect-product-service:10000' : 'http://localhost:3002';
+
+const USER_SERVICE_URL = formatServiceUrl(process.env.USER_SERVICE_URL, defaultUserUrl);
+const PRODUCT_SERVICE_URL = formatServiceUrl(process.env.PRODUCT_SERVICE_URL, defaultProductUrl);
 
 const corsOptions = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
   ? { origin: process.env.CORS_ORIGIN.split(',').map(s => s.trim()) }
