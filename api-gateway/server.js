@@ -18,15 +18,54 @@ const corsOptions = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
   : {};
 app.use(cors(corsOptions));
 
-// Request logging middleware (Part C: HTTP method, requested path, target service, response status)
+// Lab 8: Prometheus Metrics Collection
+const client = require('prom-client');
+const register = new client.Registry();
+client.collectDefaultMetrics({ register, prefix: 'gateway_' });
+
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests processed by API Gateway',
+  labelNames: ['method', 'route', 'status_code', 'service'],
+  registers: [register]
+});
+
+const httpRequestDurationSeconds = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code', 'service'],
+  registers: [register],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+});
+
+// Request logging & metrics middleware (HTTP method, path, target service, response status, duration)
 app.use((req, res, next) => {
+  const startTime = process.hrtime();
   res.on('finish', () => {
+    const diff = process.hrtime(startTime);
+    const durationSeconds = diff[0] + diff[1] / 1e9;
     const serviceEntry = Object.values(config.services).find(s => 
       req.originalUrl === s.pathPrefix || 
       req.originalUrl.startsWith(s.pathPrefix + '/') || 
       req.originalUrl.startsWith(s.pathPrefix + '?')
     );
-    const target = serviceEntry ? serviceEntry.serviceId : 'gateway';
+    const target = serviceEntry ? serviceEntry.serviceId : (req.path === '/health' || req.path === '/metrics' ? 'gateway' : 'unmatched');
+    const route = serviceEntry ? serviceEntry.pathPrefix : req.path;
+
+    // Track Prometheus metrics (Lab 8)
+    httpRequestsTotal.inc({
+      method: req.method,
+      route,
+      status_code: res.statusCode.toString(),
+      service: target
+    });
+    httpRequestDurationSeconds.observe({
+      method: req.method,
+      route,
+      status_code: res.statusCode.toString(),
+      service: target
+    }, durationSeconds);
+
     console.log(`[Gateway] ${req.method} ${req.originalUrl} -> ${target} -> ${res.statusCode}`);
   });
   next();
@@ -39,6 +78,16 @@ app.get('/health', (req, res) => {
     service: 'api-gateway',
     timestamp: new Date().toISOString()
   });
+});
+
+// Lab 8: Prometheus Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
 });
 
 // Factory for proxying requests with centralized error handling (Part D)

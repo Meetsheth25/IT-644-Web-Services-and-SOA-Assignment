@@ -26,6 +26,49 @@ const corsOptions = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Lab 8: Prometheus Metrics Collection
+const client = require('prom-client');
+const register = new client.Registry();
+client.collectDefaultMetrics({ register, prefix: 'user_service_' });
+
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests processed by User Service',
+  labelNames: ['method', 'route', 'status_code', 'service'],
+  registers: [register]
+});
+
+const httpRequestDurationSeconds = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code', 'service'],
+  registers: [register],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+});
+
+// Metrics & request tracking middleware
+app.use((req, res, next) => {
+  const startTime = process.hrtime();
+  res.on('finish', () => {
+    const diff = process.hrtime(startTime);
+    const durationSeconds = diff[0] + diff[1] / 1e9;
+    const route = req.route ? req.route.path : req.path;
+    httpRequestsTotal.inc({
+      method: req.method,
+      route,
+      status_code: res.statusCode.toString(),
+      service: 'user-service'
+    });
+    httpRequestDurationSeconds.observe({
+      method: req.method,
+      route,
+      status_code: res.statusCode.toString(),
+      service: 'user-service'
+    }, durationSeconds);
+  });
+  next();
+});
+
 // Handle invalid JSON body syntax
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -91,6 +134,16 @@ app.get('/health', (req, res) => {
     port: PORT,
     timestamp: new Date().toISOString()
   });
+});
+
+// Lab 8: Prometheus Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
 });
 
 // GET /users - Retrieve all users

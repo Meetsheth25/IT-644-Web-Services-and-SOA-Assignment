@@ -1,10 +1,11 @@
-# RESTful Student Management System — Lab 3, Lab 4, Lab 5, Lab 6 & Lab 7
+# RESTful Student Management System — Lab 3, Lab 4, Lab 5, Lab 6, Lab 7 & Lab 8
 
 Web Services & SOA Laboratory
 - **Lab 4 Assignment**: Full-Stack Client & Database Integration
 - **Lab 5 Assignment**: Docker & Containerization – Dockerizing the Student REST API
 - **Lab 6 Assignment**: Docker & Microservices – Decomposing and Running Backend as Independent Services
 - **Lab 7 Assignment**: API Gateway, Configuration-Based Service Discovery & Cloud Deployment
+- **Lab 8 Assignment**: Kubernetes Orchestration, Basic CI/CD & Monitoring
 
 ---
 
@@ -1371,3 +1372,355 @@ All 18 technical illustrations and evidence captures have been prepared in exact
 | [`17_Render_Public_URL.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/17_Render_Public_URL.png) | Windows 11 Chrome | Render Gateway Overview | Public URL `https://it-644-web-services-and-soa-assignment.onrender.com` |
 | [`18_Final_Render_Deployment.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/18_Final_Render_Deployment.png) | Windows 11 Chrome | Render Dashboard Overview | Clean deployment layout showing all 4 services healthy & Live |
 
+---
+
+# Part VI: Lab 8 — Kubernetes Orchestration, Basic CI/CD & Monitoring
+
+## 51. Lab 7 Starting Point & Transition to Lab 8
+
+Lab 8 directly continues the microservices architecture established in Lab 7. No microservice was rewritten from scratch or removed. The system builds on top of:
+- **API Gateway**: Single public entry point routing requests to backend microservices.
+- **User Service, Product Service, Order Service**: Decoupled domain microservices.
+- **MongoDB Atlas**: Managed external multi-tenant cloud database running outside the cluster.
+- **Configuration-Based Service Discovery**: Dynamic discovery via environment variables.
+- **Automated Test Suites**: Comprehensive regression verification and health checks.
+
+In Lab 8, we advance this system into an automated enterprise DevOps workflow featuring **Kubernetes** orchestration, automated **GitHub Actions CI**, and observability with **Prometheus** and **Grafana**.
+
+---
+
+## 52. Complete System Architecture
+
+```text
+                    Client / Postman
+                          │
+                          ▼
+              Kubernetes Gateway Service
+                    (LoadBalancer:3000)
+                          │
+                          ▼
+                     API Gateway
+                          │
+             ┌────────────┼────────────┐
+             │            │            │
+             ▼            ▼            ▼
+        User Service Product Service Order Service
+        (ClusterIP)  (ClusterIP)   (ClusterIP)
+             │            │            ▲
+             │            └────────────┤ (Inter-service)
+             └─────────────────────────┘
+                          │
+                          ▼
+                    MongoDB Atlas
+               (External Cloud Database)
+```
+
+### Monitoring Architecture:
+```text
+    Kubernetes Application (Pods in lab8 namespace)
+    [/metrics endpoints: Gateway, User, Product, Order]
+                          │
+                          ▼ (5s scrape interval)
+                      Prometheus
+                    (NodePort:30090)
+                          │
+                          ▼ (PromQL queries)
+                       Grafana
+                    (NodePort:30300)
+```
+
+### Continuous Integration (CI) Workflow:
+```text
+                  GitHub Repository
+                          │
+                          ▼ (git push / pull_request)
+                    GitHub Actions
+                          │
+        ┌─────────────────┼─────────────────┐
+        ▼                 ▼                 ▼
+   Dependency        Automated Unit       Docker Image
+   Installation        Test Suites           Builds
+  (All 4 services)   (All 4 services)   (All 4 services)
+```
+
+---
+
+## 53. Kubernetes Prerequisites & Selected Environment
+
+### Selected Environment: Docker Desktop Kubernetes
+- **Client**: `kubectl` v1.36.1 (bundled with Docker Desktop).
+- **Cluster**: Docker Desktop built-in single-node Kubernetes cluster.
+- **Node**: `docker-desktop`.
+- **Operating System**: Windows 11 with WSL 2 backend.
+
+### Enabling Kubernetes in Docker Desktop:
+1. Open Docker Desktop.
+2. Navigate to **Settings** (gear icon) -> **Kubernetes**.
+3. Check the checkbox: **Enable Kubernetes**.
+4. Click **Apply & restart**.
+5. Verify the status indicator turns green: "Kubernetes is running".
+
+---
+
+## 54. Cluster Verification & Namespace Setup
+
+Verify cluster connectivity and create the dedicated namespace:
+
+```powershell
+# 1. Verify current Kubernetes context
+kubectl config current-context
+# Expected: docker-desktop
+
+# 2. Verify active cluster nodes
+kubectl get nodes
+# Expected: docker-desktop   Ready   control-plane   ...
+
+# 3. Create dedicated namespace for Lab 8
+kubectl create namespace lab8
+
+# 4. Verify namespace creation
+kubectl get namespaces
+```
+
+---
+
+## 55. Kubernetes Manifest Structure (`k8s/`)
+
+The repository organizes all orchestration manifests in [`k8s/`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/):
+
+| File | Resource Kind | Metadata Name | Purpose & Configuration |
+| :--- | :--- | :--- | :--- |
+| [`configmap.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/configmap.yaml) | ConfigMap | `campusconnect-config` | Non-sensitive configuration (Service URLs, ports, CORS origin). |
+| [`secret.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/secret.yaml) | Secret | `campusconnect-secrets` | Sensitive database credentials and MongoDB Atlas URIs (template). |
+| [`gateway-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/gateway-deployment.yaml) | Deployment | `gateway-deployment` | API Gateway pod specification, resource limits, liveness & readiness probes. |
+| [`gateway-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/gateway-service.yaml) | Service | `gateway-service` | External entry point (`LoadBalancer` / `NodePort:30080` targeting port 3000). |
+| [`user-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/user-deployment.yaml) | Deployment | `user-service` | User Service deployment supporting horizontal scaling and self-healing. |
+| [`user-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/user-service.yaml) | Service | `user-service` | Internal service discovery via stable DNS `http://user-service:3001` (`ClusterIP`). |
+| [`product-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/product-deployment.yaml) | Deployment | `product-service` | Product Service deployment with container port 3002 and health checks. |
+| [`product-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/product-service.yaml) | Service | `product-service` | Internal service discovery via stable DNS `http://product-service:3002` (`ClusterIP`). |
+| [`order-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/order-deployment.yaml) | Deployment | `order-service` | Order Service deployment injected with upstream discovery URLs. |
+| [`order-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/order-service.yaml) | Service | `order-service` | Internal service discovery via stable DNS `http://order-service:3003` (`ClusterIP`). |
+
+---
+
+## 56. Deployment Commands & Verification Workflow
+
+### 1. Build and Tag Docker Images (Local Cluster Access)
+```powershell
+docker build -t api-gateway:v1.0.0 ./api-gateway
+docker build -t user-service:v1.0.0 ./user-service
+docker build -t product-service:v1.0.0 ./product-service
+docker build -t order-service:v1.0.0 ./order-service
+```
+
+### 2. Apply Manifests to the `lab8` Namespace
+```powershell
+kubectl apply -f k8s/ -n lab8
+```
+
+### 3. Verify Deployments, Pods, and Services
+```powershell
+# Check deployments
+kubectl get deployments -n lab8
+
+# Check running pods
+kubectl get pods -n lab8
+
+# Check services and port mappings
+kubectl get services -n lab8
+```
+
+---
+
+## 57. Kubernetes Service Discovery & Gateway Access
+
+- **Internal Cluster Communication**:
+  Pod-to-pod communication never relies on volatile Pod IPs. Microservices communicate strictly using **Kubernetes Service DNS names**:
+  - Gateway -> User Service: `http://user-service:3001`
+  - Gateway -> Product Service: `http://product-service:3002`
+  - Gateway -> Order Service: `http://order-service:3003`
+  - Order Service -> User Service: `http://user-service:3001`
+  - Order Service -> Product Service: `http://product-service:3002`
+- **External Client Entry Point**:
+  The `gateway-service` is exposed as a `LoadBalancer`. On Docker Desktop Kubernetes, this binds directly to `http://localhost:3000`. Postman and test scripts target `http://localhost:3000` exactly as in Lab 7.
+
+---
+
+## 58. Demonstrating Horizontal Scaling (User Service)
+
+Per the Lab 8 specification, scale User Service from 1 replica to 3 replicas:
+
+```powershell
+# Scale deployment to 3 replicas
+kubectl scale deployment user-service --replicas=3 -n lab8
+
+# Verify all 3 pods are Running and Ready
+kubectl get pods -n lab8 -l app=user-service
+```
+Expected output:
+```text
+NAME                            READY   STATUS    RESTARTS   AGE
+user-service-xxxxxxxxxx-aaaaa   1/1     Running   0          2m
+user-service-xxxxxxxxxx-bbbbb   1/1     Running   0          10s
+user-service-xxxxxxxxxx-ccccc   1/1     Running   0          10s
+```
+
+The Kubernetes `user-service` Service automatically load-balances requests across all 3 active pods using round-robin endpoints without any client configuration changes.
+
+---
+
+## 59. Demonstrating Kubernetes Self-Healing
+
+To prove Kubernetes self-healing and desired-state reconciliation:
+
+```powershell
+# 1. Identify an active User Service pod
+kubectl get pods -n lab8 -l app=user-service
+
+# 2. Simulate catastrophic pod failure by manually deleting one pod
+kubectl delete pod <user-service-pod-name> -n lab8
+
+# 3. Immediately inspect pod list to observe replacement creation
+kubectl get pods -n lab8 -l app=user-service
+```
+Kubernetes observes the discrepancy between the desired replica count and running pods, immediately scheduling a replacement pod to restore full system availability.
+
+---
+
+## 60. Troubleshooting & Diagnostic Commands
+
+Standard diagnostic procedures for inspecting workloads:
+```powershell
+# 1. Describe pod events and health status
+kubectl describe pod <pod-name> -n lab8
+
+# 2. Stream real-time logs from a service container
+kubectl logs <pod-name> -n lab8 -f
+
+# 3. Inspect registered endpoints behind a Kubernetes Service
+kubectl get endpoints gateway-service -n lab8
+kubectl get endpoints user-service -n lab8
+kubectl get endpoints product-service -n lab8
+kubectl get endpoints order-service -n lab8
+```
+
+---
+
+## 61. GitHub Actions CI/CD Pipeline
+
+The automated CI workflow is configured in [`.github/workflows/ci.yml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/.github/workflows/ci.yml).
+
+### Workflow Characteristics:
+- **Triggers**: Runs automatically on every `push` and `pull_request` targeting `master` or `main`.
+- **Runner**: `ubuntu-latest`.
+- **Multi-Service Architecture Adaptation**:
+  Rather than assuming a single monolithic root `package.json`, the pipeline iterates through each independent service:
+  1. Installs dependencies using clean, deterministic `npm ci`.
+  2. Executes automated unit tests for all 4 services (`api-gateway`, `user-service`, `product-service`, `order-service`).
+  3. Builds Docker container images tagged with `${{ github.sha }}` and `latest`.
+- **Zero Secret Exposure**: CI unit tests test business logic and validation without requiring production database secrets.
+
+---
+
+## 62. Prometheus Monitoring & Metrics Instrumentation
+
+All 4 microservices are instrumented with `prom-client` exposing `/metrics`:
+- **`http_requests_total`**: Counter metric tracking HTTP requests with labels: `method`, `route`, `status_code`, and `service`.
+- **`http_request_duration_seconds`**: Histogram metric measuring request latency across duration buckets (`0.005s` to `5s`).
+- **`up`**: Standard Prometheus target availability indicator (`1` = UP, `0` = DOWN).
+
+### Deploying Prometheus to Kubernetes:
+```powershell
+kubectl apply -f monitoring/prometheus-configmap.yaml -n lab8
+kubectl apply -f monitoring/prometheus-deployment.yaml -n lab8
+kubectl apply -f monitoring/prometheus-service.yaml -n lab8
+```
+
+### Accessing Prometheus UI:
+- Open browser to `http://localhost:30090` (or `http://localhost:9090`).
+- Check Targets: **Status -> Targets** (Verify all 4 services report `UP`).
+- Sample PromQL Queries:
+  ```promql
+  # Check availability of all microservices
+  up
+
+  # Total request throughput across services
+  rate(http_requests_total[5m])
+
+  # Request rate by service
+  sum(rate(http_requests_total[1m])) by (service)
+
+  # 5xx Error rate
+  sum(rate(http_requests_total{status_code=~"5.."}[1m])) by (service)
+
+  # P95 Request duration
+  histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, service))
+  ```
+
+---
+
+## 63. Grafana Dashboard & Visualizations
+
+Grafana connects to Prometheus as its default data source and visualizes key operational metrics.
+
+### Deploying Grafana to Kubernetes:
+```powershell
+kubectl apply -f monitoring/grafana-deployment.yaml -n lab8
+kubectl apply -f monitoring/grafana-service.yaml -n lab8
+```
+- Web UI: `http://localhost:30300` (or `http://localhost:3005` via Docker Compose).
+- Login: `admin` / `admin`.
+
+### Dashboard Specification ([`monitoring/grafana-dashboard.json`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/monitoring/grafana-dashboard.json)):
+The dashboard contains 4 dedicated panels answering core operational questions:
+1. **Service Availability**: Answers *"Are targets reachable?"* (`up` metric with green UP / red DOWN stat display).
+2. **Traffic Throughput**: Answers *"How much traffic is arriving?"* (Time-series graph of `sum(rate(http_requests_total[1m])) by (service)`).
+3. **Error Rate**: Answers *"Are failures increasing?"* (Time-series graph isolating `status_code=~"5.."` server faults).
+4. **P95 Latency / Duration**: Answers *"How long are requests taking?"* (Quantile histogram of response times).
+
+---
+
+## 64. Automated Traffic Generation & Verification
+
+To generate mixed API requests and observe real-time metrics updates in Prometheus and Grafana:
+
+```powershell
+node generate-traffic.js
+```
+
+The script runs automated iterations targeting:
+- `GET /health` (Gateway native health)
+- `GET /users` & `GET /users/1` (User Service)
+- `GET /products` & `GET /products/1` (Product Service)
+- `GET /orders` (Order Service)
+- `GET /unknown-endpoint-for-monitoring-test` (Controlled 404 error testing)
+
+---
+
+## 65. Security & Configuration Best Practices
+
+- **Zero Hardcoded Secrets**: MongoDB connection strings and passwords are NEVER committed to version control.
+- **External Database**: MongoDB Atlas remains hosted externally on AWS/GCP, completely isolated from Kubernetes pod lifecycles.
+- **Network Perimeter Security**: Only the API Gateway is exposed to clients; backend microservices remain unexposed on internal `ClusterIP` networks.
+
+---
+
+## 66. Official Lab 8 Deliverables & Evidence Checklist
+
+Per Section 7.1 of the official Lab 8 specification:
+
+| No. | Evidence Item | Description / Target | Status |
+| :--- | :--- | :--- | :--- |
+| 1 | **Lab 7 Baseline** | Gateway health and CRUD operations output on port 3000. | **VERIFIED** |
+| 2 | **Kubernetes Environment** | Output of `kubectl config current-context` & `kubectl get nodes`. | **PENDING** |
+| 3 | **Manifests** | Valid YAML files in `k8s/` directory. | **VERIFIED** |
+| 4 | **Deployment** | Output of `kubectl get deployments,pods,services -n lab8`. | **PENDING** |
+| 5 | **Gateway Test** | Successful API call through Kubernetes gateway service. | **PENDING** |
+| 6 | **Scaling** | Output of `kubectl scale deployment user-service --replicas=3 -n lab8`. | **PENDING** |
+| 7 | **Self-Healing** | Pod deletion and automatic replacement recovery. | **PENDING** |
+| 8 | **Troubleshooting** | Output of `kubectl describe`, `kubectl logs`, `kubectl get endpoints`. | **PENDING** |
+| 9 | **GitHub Actions** | Completed green CI workflow run in repository Actions tab. | **PENDING** |
+| 10 | **Prometheus** | Targets page showing `UP` state and active PromQL query output. | **PENDING** |
+| 11 | **Grafana Dashboard** | Dashboard displaying all 4 operational panels. | **PENDING** |
+| 12 | **Traffic Monitoring** | Observed metrics surge after executing `generate-traffic.js`. | **PENDING** |
+| 13 | **Architecture Diagram** | Complete system and monitoring architecture diagram. | **VERIFIED** |
