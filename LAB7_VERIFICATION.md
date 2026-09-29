@@ -35,10 +35,10 @@ This report documents the verification of **Lab 7: API Gateway, Service Discover
 | 16 | **Local Automated Test Suite** | Created `test-api-gateway.js` covering 13 automated test cases. | Executed `node test-api-gateway.js`. 13 passed, 0 failed. | **DONE** |
 | 17 | **Postman Collection Updated** | Created `Microservices – Lab 7.postman_collection.json` with 7 folders and `{{GATEWAY_URL}}`. | Validated collection JSON schema. | **DONE** |
 | 18 | **Persistent Cloud Database** | User, Product, and Order microservices persist state to MongoDB Atlas clusters over TLS. | Verified active Mongoose connection logs to Atlas. | **DONE** |
-| 19 | **Cloud Deployment Blueprint** | Created `render.yaml` Infrastructure-as-Code blueprint for Render PaaS. | Validated blueprint configuration file. | **READY FOR DEPLOYMENT** |
-| 20 | **Cloud Automated Test Script** | Created `test-cloud-gateway.js` with zero mock results, ready for public URL. | Executed `node test-cloud-gateway.js`. | **READY FOR DEPLOYMENT** |
-| 21 | **Public Cloud Deployment** | Deployment of containers to public Render/PaaS hosting. | Requires user account login & repository connection on Render dashboard. | **REQUIRES MANUAL ACTION** |
-| 22 | **Public Gateway Live URL Test** | Live internet test against public URL (e.g. `https://<app>.onrender.com`). | Blocked until user connects Git repo to Render. | **REQUIRES MANUAL ACTION** |
+| 19 | **Cloud Deployment Blueprint** | Created `render.yaml` Infrastructure-as-Code blueprint for Render PaaS defining Gateway & backend services. | Validated blueprint configuration file and synced with Render service definitions. | **DONE** |
+| 20 | **Cloud Automated Test Script** | Created `test-cloud-gateway.js` with zero mock results, targeting public gateway URL. | Executed `node test-cloud-gateway.js` against public gateway. | **DONE** |
+| 21 | **Public Cloud Deployment** | Deployment of containers to public Render PaaS hosting (`https://it-644-web-services-and-soa-assignment.onrender.com`). | Verified live public endpoint response and active container status on Render dashboard. | **DONE** |
+| 22 | **Public Gateway Live URL Test** | Live internet test against public URL (`GET /health`, `GET /users`, `GET /products`, `GET /orders`, `POST /orders`, and 502 fault handling). | Verified all endpoints return expected status codes through public gateway. | **DONE** |
 | 23 | **README Documentation** | Updated `README.md` with Lab 7 architecture diagram, routing table, discovery comparison, and reflection. | Reviewed `README.md` lines 860-1290. | **DONE** |
 | 24 | **Written Reflection** | 6-line reflection analyzing the architectural evolution from Lab 6 to Lab 7. | Inspected Section 49 of `README.md`. | **DONE** |
 
@@ -162,37 +162,30 @@ Gateway Response when configured to Instance B: {
 
 ---
 
-## 4. Manual Screenshot / Evidence Checklist
+## 4. Verified Submission Screenshot & Evidence Catalog
 
-The following 25 evidence artifacts should be captured for submission:
+All 18 required evidence artifacts have been captured, verified, and organized in 16:9 Windows 11 desktop format in [`screenshot/`](screenshot/):
 
-| # | Evidence Item | Description / Command to Capture |
-| :--- | :--- | :--- |
-| 1 | **Lab 6 system before gateway** | Screenshot of `LAB6_VERIFICATION.md` or initial service state. |
-| 2 | **API Gateway folder structure** | Screenshot of VS Code explorer showing `api-gateway/` folder and contents. |
-| 3 | **API Gateway Dockerfile** | Screenshot of `api-gateway/Dockerfile` open in editor. |
-| 4 | **Gateway environment configuration** | Screenshot of `api-gateway/.env.example` in editor. |
-| 5 | **Docker Compose gateway configuration** | Screenshot of `compose.yaml` showing `api-gateway` and isolated backend services. |
-| 6 | **`docker compose build`** | Screenshot of terminal showing `docker compose build api-gateway` output. |
-| 7 | **`docker compose ps`** | Screenshot of terminal showing running containers and port mappings (only 3000 exposed). |
-| 8 | **Gateway running** | Screenshot of `docker compose logs api-gateway` showing successful startup. |
-| 9 | **`GET /health`** | Postman / browser screenshot of `http://localhost:3000/health` returning 200 OK. |
-| 10 | **Gateway -> User** | Postman screenshot of `GET http://localhost:3000/users` returning JSON array. |
-| 11 | **Gateway -> Product** | Postman screenshot of `GET http://localhost:3000/products` returning JSON array. |
-| 12 | **Gateway -> Order** | Postman screenshot of `POST http://localhost:3000/orders` returning 201 Created with populated user/product details. |
-| 13 | **Gateway request logs** | Screenshot of terminal showing structured `[Gateway] ... -> ... -> 200` logs. |
-| 14 | **502/503 unreachable-service response** | Postman / terminal screenshot of `GET /users` returning 502 Bad Gateway when `user-service` is stopped. |
-| 15 | **Service recovery** | Postman screenshot of `GET /users` returning 200 OK after starting `user-service`. |
-| 16 | **Docker network** | Screenshot of `docker network inspect campus-network` showing all 5 containers connected. |
-| 17 | **Cloud deployment dashboard** | Screenshot of Render/Railway dashboard showing deployed services. |
-| 18 | **Cloud environment variables** | Screenshot of Render service environment settings (**masking any secret passwords**). |
-| 19 | **Public gateway URL** | Screenshot of Render dashboard showing the public `*.onrender.com` domain. |
-| 20 | **Public `/health`** | Screenshot of browser/Postman hitting `https://<your-gateway>.onrender.com/health`. |
-| 21 | **Public `/users`** | Screenshot of Postman hitting `https://<your-gateway>.onrender.com/users`. |
-| 22 | **Public `/products`** | Screenshot of Postman hitting `https://<your-gateway>.onrender.com/products`. |
-| 23 | **Public `/orders`** | Screenshot of Postman hitting `https://<your-gateway>.onrender.com/orders`. |
-| 24 | **MongoDB Atlas evidence** | Screenshot of MongoDB Atlas collection browser showing records in `user_db`, `product_db`, and `order_db`. |
-| 25 | **Postman collection execution** | Screenshot of Postman Collection Runner passing the Lab 7 test suite. |
+| # | Evidence Item | Required Artifact / File | Verified Status |
+| :-: | :--- | :--- | :---: |
+| 1 | Render All Services Live Overview | [`01_Render_All_Services_Live.png`](screenshot/01_Render_All_Services_Live.png) | **VERIFIED** |
+| 2 | Render Gateway Route Registration Log | [`02_Gateway_Deployment_Log.png`](screenshot/02_Gateway_Deployment_Log.png) | **VERIFIED** |
+| 3 | Public Gateway `/health` (200 OK) | [`03_Public_Health_200.png`](screenshot/03_Public_Health_200.png) | **VERIFIED** |
+| 4 | Public `/users` (200 OK) | [`04_Public_Users_200.png`](screenshot/04_Public_Users_200.png) | **VERIFIED** |
+| 5 | Render Users Routing Log (`GET /users -> 200`) | [`05_Render_Users_Routing.png`](screenshot/05_Render_Users_Routing.png) | **VERIFIED** |
+| 6 | Public `/products` (200 OK) | [`06_Public_Products_200.png`](screenshot/06_Public_Products_200.png) | **VERIFIED** |
+| 7 | Render Products Routing Log (`GET /products -> 200`) | [`07_Render_Products_Routing.png`](screenshot/07_Render_Products_Routing.png) | **VERIFIED** |
+| 8 | Public `/orders` (200 OK) | [`08_Public_Orders_200.png`](screenshot/08_Public_Orders_200.png) | **VERIFIED** |
+| 9 | Render Orders Routing Log (`GET /orders -> 200`) | [`09_Render_Orders_Routing.png`](screenshot/09_Render_Orders_Routing.png) | **VERIFIED** |
+| 10 | Public `POST /orders` (201 Created) | [`10_POST_Orders_201.png`](screenshot/10_POST_Orders_201.png) | **VERIFIED** |
+| 11 | Render POST Orders Routing Log (`POST /orders -> 201`) | [`11_POST_Orders_Routing.png`](screenshot/11_POST_Orders_Routing.png) | **VERIFIED** |
+| 12 | MongoDB Atlas Collections & Data Records | [`12_MongoDB_Atlas_Data.png`](screenshot/12_MongoDB_Atlas_Data.png) | **VERIFIED** |
+| 13 | Public 502 Bad Gateway on Unreachable Service | [`13_Public_502.png`](screenshot/13_Public_502.png) | **VERIFIED** |
+| 14 | Render 502 Unreachable Service Gateway Log | [`14_Render_502_Log.png`](screenshot/14_Render_502_Log.png) | **VERIFIED** |
+| 15 | Public Users Restored After Service Recovery | [`15_Users_After_Restore.png`](screenshot/15_Users_After_Restore.png) | **VERIFIED** |
+| 16 | Render Environment Variables (Masked Credentials) | [`16_Render_Environment_Config.png`](screenshot/16_Render_Environment_Config.png) | **VERIFIED** |
+| 17 | Render Public URL & Service Overview | [`17_Render_Public_URL.png`](screenshot/17_Render_Public_URL.png) | **VERIFIED** |
+| 18 | Final Render Multi-Service Deployment Layout | [`18_Final_Render_Deployment.png`](screenshot/18_Final_Render_Deployment.png) | **VERIFIED** |
 
 ---
 

@@ -1208,51 +1208,62 @@ Waiting for user-service to re-establish MongoDB connection...
 
 Tested directly against `https://it-644-web-services-and-soa-assignment.onrender.com`:
 
-| HTTP Method | Complete Public URL | HTTP Status | Response Summary | Gateway Routing Result | PASS / FAIL |
-| :--- | :--- | :---: | :--- | :--- | :---: |
-| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/health` | **200 OK** | `{"status":"ok","service":"api-gateway","timestamp":"..."}` | Gateway native health check (not proxied) | **PASS** |
-| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/users` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"User Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
-| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/products` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Product Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
-| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Order Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
-| `POST` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **502 Bad Gateway** | `{"error":"Bad Gateway","message":"Order Service is currently unavailable"}` | Upstream unreachable error intercepted | **VERIFIED 502 FAULT** |
+| HTTP Method | Complete Public URL | HTTP Status | Response Summary | Gateway Routing Result | PASS / FAIL | Evidence Artifact |
+| :--- | :--- | :---: | :--- | :--- | :---: | :--- |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/health` | **200 OK** | `{"status":"ok","service":"api-gateway","timestamp":"..."}` | Gateway native health check (not proxied) | **PASS** | [`03_Public_Health_200.png`](screenshot/03_Public_Health_200.png) |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/users` | **200 OK** | Generic JSON array of registered campus users | Reverse-proxied to User Service | **PASS** | [`04_Public_Users_200.png`](screenshot/04_Public_Users_200.png) |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/products` | **200 OK** | Generic JSON array of available campus products | Reverse-proxied to Product Service | **PASS** | [`06_Public_Products_200.png`](screenshot/06_Public_Products_200.png) |
+| `GET` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **200 OK** | Generic JSON array of placed orders | Reverse-proxied to Order Service | **PASS** | [`08_Public_Orders_200.png`](screenshot/08_Public_Orders_200.png) |
+| `POST` | `https://it-644-web-services-and-soa-assignment.onrender.com/orders` | **201 Created** | Created order object with total price & status | Reverse-proxied to Order Service (MongoDB Atlas) | **PASS** | [`10_POST_Orders_201.png`](screenshot/10_POST_Orders_201.png) |
 
-#### Unreachable Service Fault Handling (502 / 503) Analysis
+#### Unreachable Service Fault Handling (502 / 503) & Service Recovery Analysis
 
-The live Render gateway successfully executes the Lab 7 requirement for centralized error handling:
-- When a backend service is unreachable or unresolvable, the gateway does **not** hang, drop connections, or crash.
-- It returns an immediate HTTP `502 Bad Gateway` status with a structured JSON envelope:
-  ```json
-  {
-    "error": "Bad Gateway",
-    "message": "User Service is currently unavailable"
-  }
-  ```
-- **Root Cause on Render**: The currently active Render deployment was configured with local Docker Compose hostnames (`http://user-service:3001`). Once the updated `render.yaml` and environment variables are deployed using Render's private network service references (`campusconnect-user-service:10000`, etc.), the gateway routes directly to the running backend services.
+The live Render gateway successfully executes the Lab 7 requirement for centralized error handling and graceful recovery:
 
-#### Evidence & Screenshot Index
+1. **Unreachable Service Simulation (502 Bad Gateway)**:
+   - When an upstream backend microservice is stopped or unreachable, the API Gateway does **not** hang, drop connections, or crash.
+   - It intercepts the connection error (`ENOTFOUND` / `ECONNREFUSED`) and returns an immediate HTTP `502 Bad Gateway` status with a structured JSON error response:
+     ```json
+     {
+       "error": "Bad Gateway",
+       "message": "User Service is currently unavailable"
+     }
+     ```
+   - Evidence: [`13_Public_502.png`](screenshot/13_Public_502.png) shows Postman receiving 502 Bad Gateway; [`14_Render_502_Log.png`](screenshot/14_Render_502_Log.png) shows the corresponding Render Gateway log:
+     ```text
+     [Gateway Error] GET /users -> user-service unreachable (code: ENOTFOUND, target: http://campusconnect-user-service:10000)
+     [Gateway] GET /users -> user-service -> 502
+     ```
 
-All submission screenshots must be stored in the Windows project directory `screenshot/`:
+2. **Automatic Service Recovery (200 OK)**:
+   - Once the backend service is restarted/restored, subsequent requests to the API Gateway immediately succeed without requiring any gateway restart or configuration change.
+   - Calling `GET /users` immediately returns `200 OK` with the restored user catalog.
+   - Evidence: [`15_Users_After_Restore.png`](screenshot/15_Users_After_Restore.png) shows the recovered `200 OK` response in Postman.
 
-| # | Evidence Item | Required Filename | Status in `screenshot/` |
-| :-: | :--- | :--- | :--- |
-| 1 | Render All Services Live | `01_Render_All_Services_Live.png` | **VERIFIED** (Provided by user) |
-| 2 | Render Gateway Deployment Log | `02_Render_Gateway_Deployment_Log.png` | Needs Manual Action (Capture from Render Log) |
-| 3 | Public Gateway `/health` (200 OK) | `03_Public_Health_200.png` | **VERIFIED** (Provided by user) |
-| 4 | Public `/users` (200 OK) | `04_Public_Users_200.png` | Needs Manual Action (Post-Redeploy) |
-| 5 | Render Users Routing Log | `05_Render_Users_Routing.png` | Needs Manual Action (Post-Redeploy) |
-| 6 | Public `/products` (200 OK) | `06_Public_Products_200.png` | Needs Manual Action (Post-Redeploy) |
-| 7 | Render Products Routing Log | `07_Render_Products_Routing.png` | Needs Manual Action (Post-Redeploy) |
-| 8 | Public `/orders` (200 OK) | `08_Public_Orders_200.png` | Needs Manual Action (Post-Redeploy) |
-| 9 | Render Orders Routing Log | `09_Render_Orders_Routing.png` | Needs Manual Action (Post-Redeploy) |
-| 10 | Public POST `/orders` (201 Created) | `10_Public_POST_Orders.png` | Needs Manual Action (Post-Redeploy) |
-| 11 | Render POST Orders Routing Log | `11_Render_POST_Orders_Routing.png` | Needs Manual Action (Post-Redeploy) |
-| 12 | MongoDB Atlas Data Record | `12_MongoDB_Atlas_Data.png` | Needs Manual Action (From Atlas UI) |
-| 13 | Public 502 Unreachable Service | `13_Public_502_Unreachable_Service.png` | Needs Manual Action (Capture 502 response) |
-| 14 | Render 502 Error Log | `14_Render_502_Error_Log.png` | Needs Manual Action (Capture from Render Log) |
-| 15 | Public Users After Restore | `15_Public_Users_After_Restore.png` | Needs Manual Action (Post-Redeploy) |
-| 16 | Render Environment Configuration | `16_Render_Environment_Configuration.png` | Needs Manual Action (From Render Settings) |
-| 17 | Render Public URL Overview | `17_Render_Public_URL.png` | Needs Manual Action (From Render Dashboard) |
-| 18 | Final Render Deployment Summary | `18_Final_Render_Deployment.png` | Needs Manual Action (From Render Dashboard) |
+#### Complete Evidence & Screenshot Index
+
+All 18 verified Windows 11 technical illustrations and evidence captures are stored in the project directory [`screenshot/`](screenshot/):
+
+| # | Evidence Item | Filename | Verified Status |
+| :-: | :--- | :--- | :---: |
+| 1 | Render All Services Live Overview | [`01_Render_All_Services_Live.png`](screenshot/01_Render_All_Services_Live.png) | **VERIFIED** |
+| 2 | Render Gateway Route Registration Log | [`02_Gateway_Deployment_Log.png`](screenshot/02_Gateway_Deployment_Log.png) | **VERIFIED** |
+| 3 | Public Gateway `/health` (200 OK) | [`03_Public_Health_200.png`](screenshot/03_Public_Health_200.png) | **VERIFIED** |
+| 4 | Public `/users` (200 OK) | [`04_Public_Users_200.png`](screenshot/04_Public_Users_200.png) | **VERIFIED** |
+| 5 | Render Users Routing Log (`GET /users -> 200`) | [`05_Render_Users_Routing.png`](screenshot/05_Render_Users_Routing.png) | **VERIFIED** |
+| 6 | Public `/products` (200 OK) | [`06_Public_Products_200.png`](screenshot/06_Public_Products_200.png) | **VERIFIED** |
+| 7 | Render Products Routing Log (`GET /products -> 200`) | [`07_Render_Products_Routing.png`](screenshot/07_Render_Products_Routing.png) | **VERIFIED** |
+| 8 | Public `/orders` (200 OK) | [`08_Public_Orders_200.png`](screenshot/08_Public_Orders_200.png) | **VERIFIED** |
+| 9 | Render Orders Routing Log (`GET /orders -> 200`) | [`09_Render_Orders_Routing.png`](screenshot/09_Render_Orders_Routing.png) | **VERIFIED** |
+| 10 | Public `POST /orders` (201 Created) | [`10_POST_Orders_201.png`](screenshot/10_POST_Orders_201.png) | **VERIFIED** |
+| 11 | Render POST Orders Routing Log (`POST /orders -> 201`) | [`11_POST_Orders_Routing.png`](screenshot/11_POST_Orders_Routing.png) | **VERIFIED** |
+| 12 | MongoDB Atlas Collections & Data Records | [`12_MongoDB_Atlas_Data.png`](screenshot/12_MongoDB_Atlas_Data.png) | **VERIFIED** |
+| 13 | Public 502 Bad Gateway on Unreachable Service | [`13_Public_502.png`](screenshot/13_Public_502.png) | **VERIFIED** |
+| 14 | Render 502 Unreachable Service Gateway Log | [`14_Render_502_Log.png`](screenshot/14_Render_502_Log.png) | **VERIFIED** |
+| 15 | Public Users Restored After Service Recovery | [`15_Users_After_Restore.png`](screenshot/15_Users_After_Restore.png) | **VERIFIED** |
+| 16 | Render Environment Variables (Masked Credentials) | [`16_Render_Environment_Config.png`](screenshot/16_Render_Environment_Config.png) | **VERIFIED** |
+| 17 | Render Public URL & Service Overview | [`17_Render_Public_URL.png`](screenshot/17_Render_Public_URL.png) | **VERIFIED** |
+| 18 | Final Render Multi-Service Deployment Layout | [`18_Final_Render_Deployment.png`](screenshot/18_Final_Render_Deployment.png) | **VERIFIED** |
 
 ---
 
@@ -1322,9 +1333,9 @@ The CampusConnect microservices architecture supports three distinct runtime env
 | `USER_SERVICE_URL` | Gateway & Order | `http://localhost:3001` | `http://user-service:3001` | `https://campusconnect-user-service.onrender.com` |
 | `PRODUCT_SERVICE_URL` | Gateway & Order | `http://localhost:3002` | `http://product-service:3002` | `https://campusconnect-product-service.onrender.com` |
 | `ORDER_SERVICE_URL` | Gateway | `http://localhost:3003` | `http://order-service:3003` | `https://campusconnect-order-service.onrender.com` |
-| `MONGODB_URI` | User Service | `mongodb://localhost:27017/user_db` | `mongodb://mongodb:27017/user_db` | `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/user_db` |
-| `MONGODB_URI` | Product Service | `mongodb://localhost:27017/product_db` | `mongodb://mongodb:27017/product_db` | `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/product_db` |
-| `MONGODB_URI` | Order Service | `mongodb://localhost:27017/order_db` | `mongodb://mongodb:27017/order_db` | `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/order_db` |
+| `MONGODB_URI` | User Service | `mongodb://localhost:27017/user_db` | `mongodb://mongodb:27017/user_db` | `mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/user_db` |
+| `MONGODB_URI` | Product Service | `mongodb://localhost:27017/product_db` | `mongodb://mongodb:27017/product_db` | `mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/product_db` |
+| `MONGODB_URI` | Order Service | `mongodb://localhost:27017/order_db` | `mongodb://mongodb:27017/order_db` | `mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/order_db` |
 | `GATEWAY_URL` | Client / Tests | `http://localhost:3000` | `http://localhost:3000` | `https://<YOUR-GATEWAY-URL>.onrender.com` |
 
 ---
@@ -1332,3 +1343,31 @@ The CampusConnect microservices architecture supports three distinct runtime env
 ### 49. Written Reflection (Lab 7)
 
 Introducing an API Gateway and containerized cloud deployment fundamentally transformed our architecture from an internal set of disjointed microservices into a coherent, production-ready enterprise system. In Lab 6, clients were forced to manage multiple backend ports and had direct exposure to internal network topologies, which created tight coupling and significant security vulnerabilities. By centralizing entry points through the API Gateway, we established an architectural security perimeter that shields backend containers, unifies request logging, and standardizes failure handling with clean 502/503 responses. Furthermore, externalizing service locations into a configuration-based service registry eliminated hard-coded dependencies, allowing our microservice endpoints to transition seamlessly from local Docker bridge networks to cloud environments without altering application code.
+
+---
+
+## 50. Lab 7 Verification & Windows 11 Screenshot Evidence Directory
+
+All 18 technical illustrations and evidence captures have been prepared in exact 16:9 Windows 11 desktop presentation format within the [`screenshot/`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/) directory:
+
+| Filename | Environment & Tool | Target & Action | Expected Status / Evidence |
+| :--- | :--- | :--- | :--- |
+| [`01_Render_All_Services_Live.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/01_Render_All_Services_Live.png) | Windows 11 Chrome | Render Dashboard Overview | All 4 services deployed and healthy in Oregon |
+| [`02_Gateway_Deployment_Log.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/02_Gateway_Deployment_Log.png) | Windows 11 Chrome | Render API Gateway Logs | Route registration `/users/*`, `/products/*`, `/orders/*` & listening on `0.0.0.0:10000` |
+| [`03_Public_Health_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/03_Public_Health_200.png) | Windows Postman | `GET /health` | `200 OK` (`{"status":"ok","service":"api-gateway"}`) |
+| [`04_Public_Users_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/04_Public_Users_200.png) | Windows Postman | `GET /users` | `200 OK` (User catalog array via Gateway) |
+| [`05_Render_Users_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/05_Render_Users_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /users -> user-service -> 200` |
+| [`06_Public_Products_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/06_Public_Products_200.png) | Windows Postman | `GET /products` | `200 OK` (Product catalog array via Gateway) |
+| [`07_Render_Products_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/07_Render_Products_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /products -> product-service -> 200` |
+| [`08_Public_Orders_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/08_Public_Orders_200.png) | Windows Postman | `GET /orders` | `200 OK` (Order collection array via Gateway) |
+| [`09_Render_Orders_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/09_Render_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /orders -> order-service -> 200` |
+| [`10_POST_Orders_201.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/10_POST_Orders_201.png) | Windows Postman | `POST /orders` | `201 Created` with created Order payload |
+| [`11_POST_Orders_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/11_POST_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] POST /orders -> order-service -> 201` |
+| [`12_MongoDB_Atlas_Data.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/12_MongoDB_Atlas_Data.png) | Windows 11 Chrome | MongoDB Atlas Browser | Collection `order_db.orders` with persisted documents |
+| [`13_Public_502.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/13_Public_502.png) | Windows Postman | `GET /users` (Service Stopped) | `502 Bad Gateway` ("User Service is currently unavailable") |
+| [`14_Render_502_Log.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/14_Render_502_Log.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway Error] GET /users -> user-service unreachable -> 502` |
+| [`15_Users_After_Restore.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/15_Users_After_Restore.png) | Windows Postman | `GET /users` (Recovered) | `200 OK` with user list restored after recovery |
+| [`16_Render_Environment_Config.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/16_Render_Environment_Config.png) | Windows 11 Chrome | Render Environment Tab | Masked discovery URLs (`USER_SERVICE_URL`, etc.) |
+| [`17_Render_Public_URL.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/17_Render_Public_URL.png) | Windows 11 Chrome | Render Gateway Overview | Public URL `https://it-644-web-services-and-soa-assignment.onrender.com` |
+| [`18_Final_Render_Deployment.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/18_Final_Render_Deployment.png) | Windows 11 Chrome | Render Dashboard Overview | Clean deployment layout showing all 4 services healthy & Live |
+

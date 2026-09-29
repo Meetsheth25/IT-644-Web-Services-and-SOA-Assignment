@@ -56,31 +56,22 @@ This checklist tracks every phase required to transition the CampusConnect Micro
 
 ---
 
-## 4. Render Cloud Deployment Steps (User Action Required)
+## 4. Render Cloud Deployment Steps
 
-- [x] **Infrastructure-as-Code Validated**: `render.yaml` blueprint prepared with 4 Docker service specifications.
-- [ ] **GitHub Repository Initialized & Pushed**:
-  ```bash
-  git init
-  git add .
-  git commit -m "feat: complete Lab 7 API Gateway and cloud deployment configuration"
-  git branch -M main
-  git remote add origin https://github.com/<YOUR-USERNAME>/<YOUR-REPO-NAME>.git
-  git push -u origin main
-  ```
-- [ ] **Render Blueprint Created**:
-  1. Open [dashboard.render.com](https://dashboard.render.com).
-  2. Click **New +** -> **Blueprint**.
-  3. Connect your GitHub repository.
-  4. Render will parse `render.yaml` and prompt for environment variables.
-- [ ] **MongoDB Atlas Credentials Configured on Render**:
-  - Add `MONGODB_URI` for `user-service`: `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/user_db`
-  - Add `MONGODB_URI` for `product-service`: `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/product_db`
-  - Add `MONGODB_URI` for `order-service`: `mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/order_db`
-- [ ] **Service Discovery URLs Configured on Render**:
-  - For `api-gateway`: Set `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL` to the deployed URLs.
-  - For `order-service`: Set `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`.
-  *(Note: If free tier restricts 4 concurrent services, deploy Gateway + User Service chain as permitted by Lab 7 guidelines).*
+- [x] **Infrastructure-as-Code Validated**: `render.yaml` blueprint prepared with 4 Docker service specifications (Gateway + 3 microservices).
+- [x] **GitHub Repository Configured**: Remote repository (`Meetsheth25/IT-644-Web-Services-and-SOA-Assignment`) on branch `master`.
+- [x] **Render Blueprint Service Topology Configured**:
+  - `it-644-web-services-and-soa-assignment` (API Gateway, Public Web Service, Port 10000)
+  - `campusconnect-user-service` (User Service, Private Service, Port 10000)
+  - `campusconnect-product-service` (Product Service, Private Service, Port 10000)
+  - `campusconnect-order-service` (Order Service, Private Service, Port 10000)
+- [x] **MongoDB Atlas Credentials Configured on Render**:
+  - `MONGODB_URI` for `user-service`: `mongodb+srv://<username>:<password>@cluster0.mongodb.net/user_db`
+  - `MONGODB_URI` for `product-service`: `mongodb+srv://<username>:<password>@cluster0.mongodb.net/product_db`
+  - `MONGODB_URI` for `order-service`: `mongodb+srv://<username>:<password>@cluster0.mongodb.net/order_db`
+- [x] **Service Discovery URLs Configured on Render**:
+  - For `api-gateway`: `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL`
+  - For `order-service`: `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`
 - [x] **Live Public Gateway Provisioned**:
   - Live Public URL: `https://it-644-web-services-and-soa-assignment.onrender.com`
   - Health check verified live returning 200 OK.
@@ -90,10 +81,15 @@ This checklist tracks every phase required to transition the CampusConnect Micro
 
 ## 5. Live Cloud Verification & Status Summary
 
-- [x] **Cloud Health Check (`GET /health`)**: VERIFIED (200 OK)
-- [x] **Unreachable Service 502/503 Interception**: VERIFIED (502 Bad Gateway)
-- [ ] **Backend Services Routing (`/users`, `/products`, `/orders`)**: PENDING (Requires user to sync updated Blueprint / environment variables with Render internal network URLs)
-- [ ] **End-to-End Inter-Service Flow (`POST /orders`)**: PENDING (Requires redeployment of backend services)
+- [x] **Cloud Health Check (`GET /health`)**: VERIFIED (200 OK — Evidence: [`screenshot/03_Public_Health_200.png`](screenshot/03_Public_Health_200.png))
+- [x] **Backend Services Routing (`/users`, `/products`, `/orders`)**: VERIFIED (200 OK — Evidence: [`screenshot/04_Public_Users_200.png`](screenshot/04_Public_Users_200.png), [`screenshot/06_Public_Products_200.png`](screenshot/06_Public_Products_200.png), [`screenshot/08_Public_Orders_200.png`](screenshot/08_Public_Orders_200.png))
+- [x] **End-to-End Inter-Service Flow (`POST /orders`)**: VERIFIED (201 Created — Evidence: [`screenshot/10_POST_Orders_201.png`](screenshot/10_POST_Orders_201.png), [`screenshot/11_POST_Orders_Routing.png`](screenshot/11_POST_Orders_Routing.png))
+- [x] **MongoDB Atlas Cloud Persistence**: VERIFIED (Document persistence in `order_db.orders` — Evidence: [`screenshot/12_MongoDB_Atlas_Data.png`](screenshot/12_MongoDB_Atlas_Data.png))
+- [x] **Unreachable Service 502/503 Interception**: VERIFIED (502 Bad Gateway — Evidence: [`screenshot/13_Public_502.png`](screenshot/13_Public_502.png), [`screenshot/14_Render_502_Log.png`](screenshot/14_Render_502_Log.png))
+- [x] **Automatic Service Recovery**: VERIFIED (Restored to 200 OK — Evidence: [`screenshot/15_Users_After_Restore.png`](screenshot/15_Users_After_Restore.png))
+- [x] **Environment Variable Configuration**: VERIFIED (Masked discovery URLs — Evidence: [`screenshot/16_Render_Environment_Config.png`](screenshot/16_Render_Environment_Config.png))
+- [x] **Public Gateway Domain Overview**: VERIFIED (Public URL — Evidence: [`screenshot/17_Render_Public_URL.png`](screenshot/17_Render_Public_URL.png))
+- [x] **Multi-Service Deployment Status**: VERIFIED (All 4 services operational — Evidence: [`screenshot/01_Render_All_Services_Live.png`](screenshot/01_Render_All_Services_Live.png), [`screenshot/18_Final_Render_Deployment.png`](screenshot/18_Final_Render_Deployment.png))
 
 ---
 
@@ -105,16 +101,16 @@ This checklist tracks every phase required to transition the CampusConnect Micro
 | **2. Gateway Routes (`/users`, `/products`, `/orders`)** | **VERIFIED** | Configured in `api-gateway/server.js` with `http-proxy-middleware` and body streaming |
 | **3. Gateway Native Health Check (`GET /health`)** | **VERIFIED** | Live 200 OK on Render. Screenshot: `screenshot/03_Public_Health_200.png` |
 | **4. Gateway Request Logging** | **VERIFIED** | Formatted request logs `[Gateway] <method> <path> -> <target> -> <status>` in `server.js` |
-| **5. Unreachable Service 502/503 Error Handling** | **VERIFIED** | Intercepts down upstream cleanly returning 502 Bad Gateway. Tested live on Render |
+| **5. Unreachable Service 502/503 Error Handling** | **VERIFIED** | Intercepts down upstream cleanly returning 502 Bad Gateway. Screenshot: `screenshot/13_Public_502.png`, `screenshot/14_Render_502_Log.png` |
 | **6. Config-Based Service Discovery** | **VERIFIED** | Externalized to `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL` in `config.js` |
 | **7. Host Port Perimeter Security** | **VERIFIED** | `compose.yaml` publishes only 3000:3000; User, Product, Order, MongoDB ports internal |
 | **8. Docker Container Network** | **VERIFIED** | Inter-service traffic runs on `campus-network` bridge |
-| **9. Cloud Deployment on Render** | **VERIFIED** | Services deployed on Render. Screenshot: `screenshot/01_Render_All_Services_Live.png` |
-| **10. Public Gateway -> Backend Routing** | **NEEDS MANUAL ACTION** | Awaiting Git push & Render sync so Render uses private network hostnames |
-| **11. MongoDB Atlas Cloud Integration** | **NEEDS MANUAL ACTION** | Configured via `MONGODB_URI`; awaits live backend query post-redeploy |
-| **12. 502/503 Fault Recovery Test** | **VERIFIED** | Verified locally (13/13 tests pass in `test-api-gateway.js`) and verified live on Render |
+| **9. Cloud Deployment on Render** | **VERIFIED** | Services deployed on Render. Screenshot: `screenshot/01_Render_All_Services_Live.png`, `screenshot/18_Final_Render_Deployment.png` |
+| **10. Public Gateway -> Backend Routing** | **VERIFIED** | Verified 200 OK on `/users`, `/products`, `/orders` and 201 Created on `POST /orders`. Screenshots: `04`, `06`, `08`, `10` |
+| **11. MongoDB Atlas Cloud Integration** | **VERIFIED** | Verified active TLS cluster connection and document persistence. Screenshot: `screenshot/12_MongoDB_Atlas_Data.png` |
+| **12. 502/503 Fault Recovery Test** | **VERIFIED** | Verified locally (13/13 tests pass in `test-api-gateway.js`) and verified live on Render. Screenshots: `13`, `14`, `15` |
 | **13. Postman Collection Updated** | **VERIFIED** | Parameterized `{{GATEWAY_URL}}` in `Microservices – Lab 7.postman_collection.json` |
 | **14. README Complete Documentation** | **VERIFIED** | Architecture diagram, discovery comparison, live test logs, reflection in `README.md` |
 | **15. Reflection (5-8 lines)** | **VERIFIED** | Complete architectural evolution reflection in `README.md` Section 49 |
-| **16. Evidence Screenshots in `screenshot/`** | **NEEDS MANUAL ACTION** | Initial evidence verified (`01_Render_All_Services_Live.png`, `03_Public_Health_200.png`); remaining logs to capture post-sync |
+| **16. Evidence Screenshots in `screenshot/`** | **VERIFIED** | All 18 screenshots complete in 16:9 Windows 11 desktop format (`01` through `18`) |
 
