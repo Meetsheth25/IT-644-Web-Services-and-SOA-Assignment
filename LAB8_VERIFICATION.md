@@ -32,7 +32,7 @@ All items below reflect **actual, executed runtime tests** conducted against the
 | 15 | **Prometheus PromQL Queries** | Tested `up` and `rate(http_requests_total[5m])`. | `up` query returned `1` for all targets; `rate(http_requests_total[5m])` returned 38 active metric time-series. | **PASS** |
 | 16 | **Grafana Dashboard** | Grafana server deployed, Prometheus datasource configured, dashboard imported. | `http://localhost:3005` verified healthy; imported `lab8-microservices` dashboard; query proxy returned 8 frames for availability and 4 frames for throughput. | **PASS** |
 | 17 | **API Traffic Generation** | Simulated mixed workload through Kubernetes Gateway. | Executed `node generate-traffic.js http://localhost:3080 10`; traffic throughput surged to `3.83 req/s` on Gateway in Prometheus. | **PASS** |
-| 18 | **GitHub Actions CI Workflow** | Workflow configured in `.github/workflows/ci.yml`. Local multi-service unit tests passed. | Pipeline validated locally. Cloud runner execution pending `git push`. | **PENDING — GitHub execution required** |
+| 18 | **GitHub Actions CI Workflow** | Workflow configured in `.github/workflows/ci.yml`. Automated pipeline triggered on cloud runner. | GitHub Actions CI workflow run completed successfully in 29s: all microservice dependencies installed, unit tests passed, and Docker images built. Verified via `screenshot/09 GitHub Actions Success.png`. | **PASS** |
 | 19 | **Final System Architecture** | Decoupled client -> gateway -> internal services -> Atlas database & CI/monitoring. | Documented with complete ASCII topology in `README.md`. | **PASS** |
 
 ---
@@ -177,6 +177,32 @@ Grafana Query Proxy: 200 OK
 - Traffic Query (rate): 4 active service data frames returned
 ```
 
+### 2.11 GitHub Actions CI Cloud Runner Execution
+```text
+Workflow: CI (.github/workflows/ci.yml)
+Job: Build, Test & Containerize Microservices
+Run URL: https://github.com/Meetsheth25/IT-644-Web-Services-and-SOA-Assignment/actions/runs/36601608779/job/109520125610
+Trigger Commit: fix: correct GitHub Actions Node setup #2
+Status: Completed successfully (succeeded in 29s)
+Steps Executed & Passed:
+- Set up job (1s)
+- Checkout repository (1s)
+- Set up Node.js 20.x (4s)
+- Install Dependencies - API Gateway (2s)
+- Install Dependencies - User Service (1s)
+- Install Dependencies - Product Service (1s)
+- Install Dependencies - Order Service (1s)
+- Run Tests - API Gateway (1s)
+- Run Tests - User Service
+- Run Tests - Product Service
+- Run Tests - Order Service
+- Build Docker Image - API Gateway
+- Build Docker Image - User Service
+- Build Docker Image - Product Service
+- Build Docker Image - Order Service
+Evidence: screenshot/09 GitHub Actions Success.png
+```
+
 ---
 
 ## 3. Official Lab 8 Evidence Checklist
@@ -191,7 +217,7 @@ Grafana Query Proxy: 200 OK
 | 6 | **Scaling** | User service scaled to 3 running and ready replicas. | **VERIFIED** |
 | 7 | **Self-Healing** | Pod deletion and automatic replacement recovery captured. | **VERIFIED** |
 | 8 | **Troubleshooting** | Detailed `describe`, `logs`, and `endpoints` output recorded. | **VERIFIED** |
-| 9 | **GitHub Actions** | Workflow `.github/workflows/ci.yml` validated. | **PENDING (Cloud run on git push)** |
+| 9 | **GitHub Actions** | Workflow `.github/workflows/ci.yml` executed and verified via cloud CI run (`screenshot/09 GitHub Actions Success.png`). | **VERIFIED** |
 | 10 | **Prometheus** | All targets verified `UP` and `http_requests_total` queried. | **VERIFIED** |
 | 11 | **Grafana Dashboard** | Dashboard imported and query proxy verified with real data. | **VERIFIED** |
 | 12 | **Traffic Monitoring** | Surge to 3.83 req/s observed after `generate-traffic.js`. | **VERIFIED** |
