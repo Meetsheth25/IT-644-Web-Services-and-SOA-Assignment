@@ -28,9 +28,9 @@ All items below reflect **actual, executed runtime tests** conducted against the
 | 11 | **Horizontal Scaling (User Service)** | Scaled User Service from 1 replica to 3 replicas. | `kubectl scale deployment user-service --replicas=3 -n lab8`<br>All 3 replicas reached `1/1 Running` (`user-service-6cf4575fb-7rp9k`, `hqzl9`, `qln7z`). | **PASS** |
 | 12 | **Kubernetes Self-Healing** | Pod termination and automatic controller replacement. | Deleted pod `user-service-6cf4575fb-7rp9k`; Kubernetes immediately spawned replacement `user-service-6cf4575fb-wzk8f` (`1/1 Running`). | **PASS** |
 | 13 | **Troubleshooting Evidence** | Diagnostics with `describe`, `logs`, and `endpoints`. | Captured detailed event streams, probe parameters, container startup logs, and multi-endpoint registrations. | **PASS** |
-| 14 | **Prometheus Server & Scrapes** | Prometheus deployment in `lab8` namespace with 5s scrape interval. | `http://localhost:9090/api/v1/targets` verified all 8 active targets reporting `Health: up` (`up == 1`). | **PASS** |
-| 15 | **Prometheus PromQL Queries** | Tested `up` and `rate(http_requests_total[5m])`. | `up` query returned `1` for all targets; `rate(http_requests_total[5m])` returned 38 active metric time-series. | **PASS** |
-| 16 | **Grafana Dashboard** | Grafana server deployed, Prometheus datasource configured, dashboard imported. | `http://localhost:3005` verified healthy; imported `lab8-microservices` dashboard; query proxy returned 8 frames for availability and 4 frames for throughput. | **PASS** |
+| 14 | **Prometheus Server & Scrapes** | Prometheus deployment in `lab8` namespace with 5s scrape interval. Deduplicated scrape targets. | `http://localhost:9090/api/v1/targets` verified all 4 distinct service targets reporting `Health: up` (`up == 1`). | **PASS** |
+| 15 | **Prometheus PromQL Queries** | Tested `up` and `rate(http_requests_total[5m])`. | `up` query returned `1` for all 4 services; verified single-counted accurate metric time-series. | **PASS** |
+| 16 | **Grafana Dashboard** | Grafana server deployed, Prometheus datasource configured, dashboard imported. | `http://localhost:3005` verified healthy; imported `lab8-microservices` dashboard; query proxy returned 4 frames for availability (mapped to green `UP`) and 4 frames for throughput. | **PASS** |
 | 17 | **API Traffic Generation** | Simulated mixed workload through Kubernetes Gateway. | Executed `node generate-traffic.js http://localhost:3080 10`; traffic throughput surged to `3.83 req/s` on Gateway in Prometheus. | **PASS** |
 | 18 | **GitHub Actions CI Workflow** | Workflow configured in `.github/workflows/ci.yml`. Automated pipeline triggered on cloud runner. | GitHub Actions CI workflow run completed successfully in 29s: all microservice dependencies installed, unit tests passed, and Docker images built. Verified via `screenshot/09 GitHub Actions Success.png`. | **PASS** |
 | 19 | **Final System Architecture** | Decoupled client -> gateway -> internal services -> Atlas database & CI/monitoring. | Documented with complete ASCII topology in `README.md`. | **PASS** |
@@ -152,29 +152,30 @@ user-service   10.244.0.10:3001,10.244.0.11:3001,10.244.0.8:3001   8m9s
 
 ### 2.9 Prometheus Targets & Metric Queries
 ```text
-Prometheus Active Targets: 8 targets
-- api-gateway (gateway-service:3000/metrics): Health = UP
-- user-service (user-service:3001/metrics): Health = UP
-- product-service (product-service:3002/metrics): Health = UP
-- order-service (order-service:3003/metrics): Health = UP
+Prometheus Active Targets (Deduplicated): 4 distinct targets
+- api-gateway (gateway-service.lab8.svc.cluster.local:3000/metrics): Health = UP
+- user-service (user-service.lab8.svc.cluster.local:3001/metrics): Health = UP
+- product-service (product-service.lab8.svc.cluster.local:3002/metrics): Health = UP
+- order-service (order-service.lab8.svc.cluster.local:3003/metrics): Health = UP
 
-Throughput by Service after 10 Traffic Iterations:
-- api-gateway:    3.832 req/s
-- product-service: 2.109 req/s
-- order-service:   1.727 req/s
-- user-service:    1.165 req/s
+Throughput by Service after Traffic Generation:
+- api-gateway:    active metric series
+- product-service: active metric series
+- order-service:   active metric series
+- user-service:    active metric series
 
-Active metric series for rate(http_requests_total[5m]): 38
+PromQL Query `up`: returned 1 for all 4 configured microservices.
 ```
 
 ### 2.10 Grafana Dashboard Verification
 ```text
 Grafana Health: 200 OK (Version 13.2.3, Database OK)
-Datasource Added: Prometheus (uid: cfzq14z0gfz7kc, proxy to http://prometheus:9090)
+Datasource Added: Prometheus (uid: bg0sn89n98r28e / proxy to http://prometheus:9090)
 Dashboard Imported: /d/lab8-microservices/4bd4cee (UID: lab8-microservices, Status: success)
 Grafana Query Proxy: 200 OK
-- Availability Query (up): 8 active data frames returned
+- Availability Query (up): 4 distinct service data frames returned with value 1 (mapped to green "UP")
 - Traffic Query (rate): 4 active service data frames returned
+- Latency Query (p95): 4 active service data frames returned
 ```
 
 ### 2.11 GitHub Actions CI Cloud Runner Execution

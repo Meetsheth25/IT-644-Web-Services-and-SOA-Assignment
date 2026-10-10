@@ -6,6 +6,12 @@
 !.env.example
 !**/.env.example
 
+# Kubernetes Local Secrets (Never commit live credentials)
+k8s/secret.yaml
+!k8s/secret.yaml.example
+monitoring/grafana-secret.yaml
+!monitoring/grafana-secret.yaml.example
+
 # Dependencies
 node_modules/
 .pnp

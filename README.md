@@ -124,7 +124,7 @@ app.use(cors());
 
 #### Centralized `API_BASE_URL`
 
-All API requests in the React client import `API_BASE_URL` from [`student-client/src/config.js`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%204%2025-8-26/student-client/src/config.js):
+All API requests in the React client import `API_BASE_URL` from [`student-client/src/config.js`](student-client/src/config.js):
 
 ```javascript
 export const API_BASE_URL = 'http://localhost:3000';
@@ -463,7 +463,7 @@ Open `http://localhost:5173` to interact with the Dockerized API.
 
 > [!NOTE]
 > **Postman Desktop Execution Notice**:
-> Postman Desktop execution was not performed because of local hardware and performance limitations. API behavior and validation were verified using live HTTP requests through the Node.js test runner [`test-docker.js`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%204%2025-8-26/test-docker.js) and CLI testing.
+> Postman Desktop execution was not performed because of local hardware and performance limitations. API behavior and validation were verified using live HTTP requests through the Node.js test runner [`test-docker.js`](test-docker.js) and CLI testing.
 
 ---
 
@@ -641,7 +641,7 @@ Inside Docker, services communicate using **Docker Compose service names**:
 ### 30. Docker Network & Compose Configuration
 
 - **Network**: `campus-network` (bridge driver)
-- **Compose file**: [`compose.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%206%2022-9-26/compose.yaml)
+- **Compose file**: [`compose.yaml`](compose.yaml)
 
 ```yaml
 services:
@@ -759,7 +759,7 @@ docker compose logs
 
 ### 32. Verification & Automated Test Results
 
-Automated verification is performed via [`test-microservices.js`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%206%2022-9-26/test-microservices.js):
+Automated verification is performed via [`test-microservices.js`](test-microservices.js):
 
 ```bash
 node test-microservices.js
@@ -1349,28 +1349,28 @@ Introducing an API Gateway and containerized cloud deployment fundamentally tran
 
 ## 50. Lab 7 Verification & Windows 11 Screenshot Evidence Directory
 
-All 18 technical illustrations and evidence captures have been prepared in exact 16:9 Windows 11 desktop presentation format within the [`screenshot/`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/) directory:
+All 18 technical illustrations and evidence captures have been prepared in exact 16:9 Windows 11 desktop presentation format within the [`screenshot/`](screenshot/) directory:
 
 | Filename | Environment & Tool | Target & Action | Expected Status / Evidence |
 | :--- | :--- | :--- | :--- |
-| [`01_Render_All_Services_Live.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/01_Render_All_Services_Live.png) | Windows 11 Chrome | Render Dashboard Overview | All 4 services deployed and healthy in Oregon |
-| [`02_Gateway_Deployment_Log.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/02_Gateway_Deployment_Log.png) | Windows 11 Chrome | Render API Gateway Logs | Route registration `/users/*`, `/products/*`, `/orders/*` & listening on `0.0.0.0:10000` |
-| [`03_Public_Health_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/03_Public_Health_200.png) | Windows Postman | `GET /health` | `200 OK` (`{"status":"ok","service":"api-gateway"}`) |
-| [`04_Public_Users_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/04_Public_Users_200.png) | Windows Postman | `GET /users` | `200 OK` (User catalog array via Gateway) |
-| [`05_Render_Users_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/05_Render_Users_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /users -> user-service -> 200` |
-| [`06_Public_Products_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/06_Public_Products_200.png) | Windows Postman | `GET /products` | `200 OK` (Product catalog array via Gateway) |
-| [`07_Render_Products_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/07_Render_Products_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /products -> product-service -> 200` |
-| [`08_Public_Orders_200.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/08_Public_Orders_200.png) | Windows Postman | `GET /orders` | `200 OK` (Order collection array via Gateway) |
-| [`09_Render_Orders_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/09_Render_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /orders -> order-service -> 200` |
-| [`10_POST_Orders_201.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/10_POST_Orders_201.png) | Windows Postman | `POST /orders` | `201 Created` with created Order payload |
-| [`11_POST_Orders_Routing.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/11_POST_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] POST /orders -> order-service -> 201` |
-| [`12_MongoDB_Atlas_Data.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/12_MongoDB_Atlas_Data.png) | Windows 11 Chrome | MongoDB Atlas Browser | Collection `order_db.orders` with persisted documents |
-| [`13_Public_502.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/13_Public_502.png) | Windows Postman | `GET /users` (Service Stopped) | `502 Bad Gateway` ("User Service is currently unavailable") |
-| [`14_Render_502_Log.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/14_Render_502_Log.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway Error] GET /users -> user-service unreachable -> 502` |
-| [`15_Users_After_Restore.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/15_Users_After_Restore.png) | Windows Postman | `GET /users` (Recovered) | `200 OK` with user list restored after recovery |
-| [`16_Render_Environment_Config.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/16_Render_Environment_Config.png) | Windows 11 Chrome | Render Environment Tab | Masked discovery URLs (`USER_SERVICE_URL`, etc.) |
-| [`17_Render_Public_URL.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/17_Render_Public_URL.png) | Windows 11 Chrome | Render Gateway Overview | Public URL `https://it-644-web-services-and-soa-assignment.onrender.com` |
-| [`18_Final_Render_Deployment.png`](file:///M:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%207%2025-9-26/screenshot/18_Final_Render_Deployment.png) | Windows 11 Chrome | Render Dashboard Overview | Clean deployment layout showing all 4 services healthy & Live |
+| [`01_Render_All_Services_Live.png`](screenshot/01_Render_All_Services_Live.png) | Windows 11 Chrome | Render Dashboard Overview | All 4 services deployed and healthy in Oregon |
+| [`02_Gateway_Deployment_Log.png`](screenshot/02_Gateway_Deployment_Log.png) | Windows 11 Chrome | Render API Gateway Logs | Route registration `/users/*`, `/products/*`, `/orders/*` & listening on `0.0.0.0:10000` |
+| [`03_Public_Health_200.png`](screenshot/03_Public_Health_200.png) | Windows Postman | `GET /health` | `200 OK` (`{"status":"ok","service":"api-gateway"}`) |
+| [`04_Public_Users_200.png`](screenshot/04_Public_Users_200.png) | Windows Postman | `GET /users` | `200 OK` (User catalog array via Gateway) |
+| [`05_Render_Users_Routing.png`](screenshot/05_Render_Users_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /users -> user-service -> 200` |
+| [`06_Public_Products_200.png`](screenshot/06_Public_Products_200.png) | Windows Postman | `GET /products` | `200 OK` (Product catalog array via Gateway) |
+| [`07_Render_Products_Routing.png`](screenshot/07_Render_Products_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /products -> product-service -> 200` |
+| [`08_Public_Orders_200.png`](screenshot/08_Public_Orders_200.png) | Windows Postman | `GET /orders` | `200 OK` (Order collection array via Gateway) |
+| [`09_Render_Orders_Routing.png`](screenshot/09_Render_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] GET /orders -> order-service -> 200` |
+| [`10_POST_Orders_201.png`](screenshot/10_POST_Orders_201.png) | Windows Postman | `POST /orders` | `201 Created` with created Order payload |
+| [`11_POST_Orders_Routing.png`](screenshot/11_POST_Orders_Routing.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway] POST /orders -> order-service -> 201` |
+| [`12_MongoDB_Atlas_Data.png`](screenshot/12_MongoDB_Atlas_Data.png) | Windows 11 Chrome | MongoDB Atlas Browser | Collection `order_db.orders` with persisted documents |
+| [`13_Public_502.png`](screenshot/13_Public_502.png) | Windows Postman | `GET /users` (Service Stopped) | `502 Bad Gateway` ("User Service is currently unavailable") |
+| [`14_Render_502_Log.png`](screenshot/14_Render_502_Log.png) | Windows 11 Chrome | Render Gateway Logs | `[Gateway Error] GET /users -> user-service unreachable -> 502` |
+| [`15_Users_After_Restore.png`](screenshot/15_Users_After_Restore.png) | Windows Postman | `GET /users` (Recovered) | `200 OK` with user list restored after recovery |
+| [`16_Render_Environment_Config.png`](screenshot/16_Render_Environment_Config.png) | Windows 11 Chrome | Render Environment Tab | Masked discovery URLs (`USER_SERVICE_URL`, etc.) |
+| [`17_Render_Public_URL.png`](screenshot/17_Render_Public_URL.png) | Windows 11 Chrome | Render Gateway Overview | Public URL `https://it-644-web-services-and-soa-assignment.onrender.com` |
+| [`18_Final_Render_Deployment.png`](screenshot/18_Final_Render_Deployment.png) | Windows 11 Chrome | Render Dashboard Overview | Clean deployment layout showing all 4 services healthy & Live |
 
 ---
 
@@ -1486,48 +1486,77 @@ kubectl get namespaces
 
 ## 55. Kubernetes Manifest Structure (`k8s/`)
 
-The repository organizes all orchestration manifests in [`k8s/`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/):
+The repository organizes all orchestration manifests in [`k8s/`](k8s/):
 
 | File | Resource Kind | Metadata Name | Purpose & Configuration |
 | :--- | :--- | :--- | :--- |
-| [`configmap.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/configmap.yaml) | ConfigMap | `campusconnect-config` | Non-sensitive configuration (Service URLs, ports, CORS origin). |
-| [`secret.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/secret.yaml) | Secret | `campusconnect-secrets` | Sensitive database credentials and MongoDB Atlas URIs (template). |
-| [`gateway-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/gateway-deployment.yaml) | Deployment | `gateway-deployment` | API Gateway pod specification, resource limits, liveness & readiness probes. |
-| [`gateway-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/gateway-service.yaml) | Service | `gateway-service` | External entry point (`LoadBalancer` / `NodePort:30080` targeting port 3000). |
-| [`user-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/user-deployment.yaml) | Deployment | `user-service` | User Service deployment supporting horizontal scaling and self-healing. |
-| [`user-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/user-service.yaml) | Service | `user-service` | Internal service discovery via stable DNS `http://user-service:3001` (`ClusterIP`). |
-| [`product-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/product-deployment.yaml) | Deployment | `product-service` | Product Service deployment with container port 3002 and health checks. |
-| [`product-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/product-service.yaml) | Service | `product-service` | Internal service discovery via stable DNS `http://product-service:3002` (`ClusterIP`). |
-| [`order-deployment.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/order-deployment.yaml) | Deployment | `order-service` | Order Service deployment injected with upstream discovery URLs. |
-| [`order-service.yaml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/k8s/order-service.yaml) | Service | `order-service` | Internal service discovery via stable DNS `http://order-service:3003` (`ClusterIP`). |
+| [`configmap.yaml`](k8s/configmap.yaml) | ConfigMap | `campusconnect-config` | Non-sensitive configuration (Service URLs, ports, CORS origin). |
+| [`secret.yaml.example`](k8s/secret.yaml.example) | Secret Template | `campusconnect-secrets` | Sensitive database credentials and MongoDB Atlas URIs template (gitignored to prevent overwriting live secrets). |
+| [`gateway-deployment.yaml`](k8s/gateway-deployment.yaml) | Deployment | `gateway-deployment` | API Gateway pod specification, resource limits, liveness & readiness probes. |
+| [`gateway-service.yaml`](k8s/gateway-service.yaml) | Service | `gateway-service` | External entry point (`LoadBalancer` / `NodePort:30080` targeting port 3000). |
+| [`user-deployment.yaml`](k8s/user-deployment.yaml) | Deployment | `user-service` | User Service deployment supporting horizontal scaling and self-healing. |
+| [`user-service.yaml`](k8s/user-service.yaml) | Service | `user-service` | Internal service discovery via stable DNS `http://user-service:3001` (`ClusterIP`). |
+| [`product-deployment.yaml`](k8s/product-deployment.yaml) | Deployment | `product-service` | Product Service deployment with container port 3002 and health checks. |
+| [`product-service.yaml`](k8s/product-service.yaml) | Service | `product-service` | Internal service discovery via stable DNS `http://product-service:3002` (`ClusterIP`). |
+| [`order-deployment.yaml`](k8s/order-deployment.yaml) | Deployment | `order-service` | Order Service deployment injected with upstream discovery URLs. |
+| [`order-service.yaml`](k8s/order-service.yaml) | Service | `order-service` | Internal service discovery via stable DNS `http://order-service:3003` (`ClusterIP`). |
 
 ---
 
 ## 56. Deployment Commands & Verification Workflow
 
-### 1. Build and Tag Docker Images (Local Cluster Access)
+### Step 1: Create the Dedicated Kubernetes Namespace
 ```powershell
-docker build -t api-gateway:v1.0.0 ./api-gateway
-docker build -t user-service:v1.0.0 ./user-service
-docker build -t product-service:v1.0.0 ./product-service
-docker build -t order-service:v1.0.0 ./order-service
+kubectl create namespace lab8
 ```
 
-### 2. Apply Manifests to the `lab8` Namespace
+### Step 2: Configure MongoDB Atlas Secret (`campusconnect-secrets`)
+Never commit real database credentials into Git. Inject your MongoDB Atlas connection strings securely into the `lab8` namespace:
+```powershell
+kubectl create secret generic campusconnect-secrets -n lab8 `
+  --from-literal=USER_MONGODB_URI="mongodb+srv://<USER>:<PASS>@<CLUSTER>.mongodb.net/user_db?appName=Meetsheth" `
+  --from-literal=PRODUCT_MONGODB_URI="mongodb+srv://<USER>:<PASS>@<CLUSTER>.mongodb.net/product_db?appName=Meetsheth" `
+  --from-literal=ORDER_MONGODB_URI="mongodb+srv://<USER>:<PASS>@<CLUSTER>.mongodb.net/order_db?appName=Meetsheth"
+```
+Verify the secret is created without revealing raw credentials:
+```powershell
+kubectl get secret campusconnect-secrets -n lab8
+```
+
+### Step 3: Build and Tag Microservice Docker Images
+Build images locally for Docker Desktop Kubernetes:
+```powershell
+docker build -t api-gateway:v1.0.1 ./api-gateway
+docker build -t user-service:v1.0.1 ./user-service
+docker build -t product-service:v1.0.1 ./product-service
+docker build -t order-service:v1.0.1 ./order-service
+```
+
+### Step 4: Apply Kubernetes Manifests to the `lab8` Namespace
 ```powershell
 kubectl apply -f k8s/ -n lab8
 ```
 
-### 3. Verify Deployments, Pods, and Services
+### Step 5: Verify Deployments, Pods, and Services
 ```powershell
 # Check deployments
 kubectl get deployments -n lab8
 
-# Check running pods
+# Check running pods (verify all pods reach 1/1 Running state)
 kubectl get pods -n lab8
 
 # Check services and port mappings
 kubectl get services -n lab8
+```
+
+### Step 6: Access the API Gateway via Port-Forwarding
+To prevent host port collisions with local Docker Compose containers, forward the Kubernetes `gateway-service` to host port `3080`:
+```powershell
+kubectl port-forward svc/gateway-service -n lab8 3080:3000
+```
+Verify API Gateway reachability:
+```powershell
+curl http://localhost:3080/health
 ```
 
 ---
@@ -1542,7 +1571,10 @@ kubectl get services -n lab8
   - Order Service -> User Service: `http://user-service:3001`
   - Order Service -> Product Service: `http://product-service:3002`
 - **External Client Entry Point**:
-  The `gateway-service` is exposed as a `LoadBalancer`. On Docker Desktop Kubernetes, this binds directly to `http://localhost:3000`. Postman and test scripts target `http://localhost:3000` exactly as in Lab 7.
+  The `gateway-service` is exposed as a `LoadBalancer` (port 3000) and `NodePort:30080`. For isolated testing alongside Docker containers, port-forwarding to `http://localhost:3080` provides deterministic access without port binding conflicts. Test scripts accept this URL:
+  ```powershell
+  node generate-traffic.js http://localhost:3080 5
+  ```
 
 ---
 
@@ -1604,11 +1636,28 @@ kubectl get endpoints product-service -n lab8
 kubectl get endpoints order-service -n lab8
 ```
 
+### Common Issues & Solutions:
+1. **Pod in `CreateContainerConfigError`**:
+   - *Cause*: Missing secret `campusconnect-secrets` in the `lab8` namespace.
+   - *Fix*: Create the secret using `kubectl create secret generic campusconnect-secrets -n lab8 --from-literal=...`.
+2. **Database Connection Timeout / Refusing to Start**:
+   - *Cause*: Missing connection string or MongoDB Atlas Network Access whitelist blocking the local machine's IP.
+   - *Fix*: Verify Atlas IP Access List allows `0.0.0.0/0` (or current IP). Note that services now fail fast on startup with clear error messages instead of falling back to localhost.
+3. **Port Collisions on Port 3000**:
+   - *Cause*: A local Docker container or process is already bound to port 3000.
+   - *Fix*: Port-forward `gateway-service` to port `3080`: `kubectl port-forward svc/gateway-service -n lab8 3080:3000`.
+4. **Grafana Stat Panel Showing Dashes / Blank**:
+   - *Cause*: Query using range vector rather than instant vector, or missing value mappings.
+   - *Fix*: Use `up` with `instant: true` and `legendFormat: {{service}}` with value mappings (`0` -> DOWN, `1` -> UP), as configured in [`monitoring/grafana-dashboard.json`](monitoring/grafana-dashboard.json).
+5. **Duplicate Prometheus Targets**:
+   - *Cause*: Listing multiple DNS aliases (e.g. FQDN and short service name) for the same service.
+   - *Fix*: Ensure each scrape job in [`monitoring/prometheus-configmap.yaml`](monitoring/prometheus-configmap.yaml) contains only one stable service target.
+
 ---
 
 ## 61. GitHub Actions CI/CD Pipeline
 
-The automated CI workflow is configured in [`.github/workflows/ci.yml`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/.github/workflows/ci.yml).
+The automated CI workflow is configured in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### Workflow Characteristics:
 - **Triggers**: Runs automatically on every `push` and `pull_request` targeting `master` or `main`.
@@ -1664,14 +1713,24 @@ kubectl apply -f monitoring/prometheus-service.yaml -n lab8
 Grafana connects to Prometheus as its default data source and visualizes key operational metrics.
 
 ### Deploying Grafana to Kubernetes:
+1. Create Grafana Administrator Secret (or use template in [`monitoring/grafana-secret.yaml.example`](monitoring/grafana-secret.yaml.example)):
 ```powershell
+kubectl create secret generic grafana-admin-secret -n lab8 `
+  --from-literal=admin-user="admin" `
+  --from-literal=admin-password="<STRONG_PASSWORD>"
+```
+2. Apply automated provisioning ConfigMaps and Grafana manifests:
+```powershell
+kubectl apply -f monitoring/grafana-datasource-configmap.yaml -n lab8
+kubectl apply -f monitoring/grafana-dashboards-provider-configmap.yaml -n lab8
+kubectl apply -f monitoring/grafana-dashboard-configmap.yaml -n lab8
 kubectl apply -f monitoring/grafana-deployment.yaml -n lab8
 kubectl apply -f monitoring/grafana-service.yaml -n lab8
 ```
-- Web UI: `http://localhost:30300` (or `http://localhost:3005` via Docker Compose).
-- Login: `admin` / `admin`.
+- Web UI: Forward port `kubectl port-forward svc/grafana -n lab8 3005:3000` (or `http://localhost:3005` via Docker Compose / NodePort `http://localhost:30300`).
+- Automated Provisioning: Prometheus datasource and the 4-panel monitoring dashboard are mounted and loaded automatically on startup without manual clicks.
 
-### Dashboard Specification ([`monitoring/grafana-dashboard.json`](file:///m:/Mit/Clg/DAU/SY/SEM%203/IT%20644%20Web%20Services%20and%20SOA/practical/Lab%208%2029-9-26/monitoring/grafana-dashboard.json)):
+### Dashboard Specification ([`monitoring/grafana-dashboard.json`](monitoring/grafana-dashboard.json)):
 The dashboard contains 4 dedicated panels answering core operational questions:
 1. **Service Availability**: Answers *"Are targets reachable?"* (`up` metric with green UP / red DOWN stat display).
 2. **Traffic Throughput**: Answers *"How much traffic is arriving?"* (Time-series graph of `sum(rate(http_requests_total[1m])) by (service)`).
@@ -1712,15 +1771,15 @@ Per Section 7.1 of the official Lab 8 specification:
 | No. | Evidence Item | Description / Target | Status |
 | :--- | :--- | :--- | :--- |
 | 1 | **Lab 7 Baseline** | Gateway health and CRUD operations output on port 3000. | **VERIFIED** |
-| 2 | **Kubernetes Environment** | Output of `kubectl config current-context` & `kubectl get nodes`. | **PENDING** |
+| 2 | **Kubernetes Environment** | Output of `kubectl config current-context` & `kubectl get nodes` (`screenshot LAB 8/01 Kubernetes Context Node.png`). | **VERIFIED** |
 | 3 | **Manifests** | Valid YAML files in `k8s/` directory. | **VERIFIED** |
-| 4 | **Deployment** | Output of `kubectl get deployments,pods,services -n lab8`. | **PENDING** |
-| 5 | **Gateway Test** | Successful API call through Kubernetes gateway service. | **PENDING** |
-| 6 | **Scaling** | Output of `kubectl scale deployment user-service --replicas=3 -n lab8`. | **PENDING** |
-| 7 | **Self-Healing** | Pod deletion and automatic replacement recovery. | **PENDING** |
-| 8 | **Troubleshooting** | Output of `kubectl describe`, `kubectl logs`, `kubectl get endpoints`. | **PENDING** |
-| 9 | **GitHub Actions** | Completed green CI workflow run in repository Actions tab. | **PENDING** |
-| 10 | **Prometheus** | Targets page showing `UP` state and active PromQL query output. | **PENDING** |
-| 11 | **Grafana Dashboard** | Dashboard displaying all 4 operational panels. | **PENDING** |
-| 12 | **Traffic Monitoring** | Observed metrics surge after executing `generate-traffic.js`. | **PENDING** |
-| 13 | **Architecture Diagram** | Complete system and monitoring architecture diagram. | **VERIFIED** |
+| 4 | **Deployment** | Output of `kubectl get deployments,pods,services -n lab8` (`screenshot LAB 8/02 Kubernetes Deployments Pods Services.png`). | **VERIFIED** |
+| 5 | **Gateway Test** | Successful API call through Kubernetes gateway service (`screenshot LAB 8/03...` to `05...`). | **VERIFIED** |
+| 6 | **Scaling** | Output of `kubectl scale deployment user-service --replicas=3 -n lab8` (`screenshot LAB 8/06 User Service Scaling.png`). | **VERIFIED** |
+| 7 | **Self-Healing** | Pod deletion and automatic replacement recovery (`screenshot LAB 8/07 Kubernetes Self Healing.png`). | **VERIFIED** |
+| 8 | **Troubleshooting** | Output of `kubectl describe`, `kubectl logs`, `kubectl get endpoints` (`screenshot LAB 8/08A...` & `08B...`). | **VERIFIED** |
+| 9 | **GitHub Actions** | Completed green CI workflow run in repository Actions tab (`screenshot LAB 8/09 GitHub Actions Success.png`). | **VERIFIED** |
+| 10 | **Prometheus** | Targets page showing `UP` state and active PromQL query output (`screenshot LAB 8/10...` & `11...`). | **VERIFIED** |
+| 11 | **Grafana Dashboard** | Dashboard displaying all 4 operational panels (`screenshot LAB 8/15 Grafana Dashboard Final.png`). | **VERIFIED** |
+| 12 | **Traffic Monitoring** | Observed metrics surge after executing `generate-traffic.js` (`screenshot LAB 8/12 prometheus traffic metrics.png`). | **VERIFIED** |
+| 13 | **Architecture Diagram** | Complete system and monitoring architecture diagram in README Section 52. | **VERIFIED** |

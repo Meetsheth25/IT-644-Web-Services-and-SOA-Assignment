@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: user-service:v1.0.0
+          image: user-service:v1.0.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -34,7 +34,6 @@ spec:
                 secretKeyRef:
                   name: campusconnect-secrets
                   key: USER_MONGODB_URI
-                  optional: true
             - name: CORS_ORIGIN
               valueFrom:
                 configMapKeyRef:

@@ -17,8 +17,22 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
+function sanitizeMongoUri(rawUri) {
+  if (!rawUri || typeof rawUri !== 'string') return '<undefined>';
+  try {
+    return rawUri.replace(/(mongodb(?:\+srv)?:\/\/)([^:@]+):([^@]+)@/i, '$1****:****@');
+  } catch (e) {
+    return 'mongodb://****:****@<redacted>';
+  }
+}
+
 const PORT = process.env.PORT || process.env.USER_SERVICE_PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || process.env.USER_MONGODB_URI || 'mongodb://localhost:27017/user_db';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.USER_MONGODB_URI;
+
+if (!MONGODB_URI || typeof MONGODB_URI !== 'string' || MONGODB_URI.trim() === '') {
+  console.error('[User Service Fatal] Missing required database connection string. Set MONGODB_URI or USER_MONGODB_URI via campusconnect-secrets.');
+  process.exit(1);
+}
 
 const corsOptions = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
   ? { origin: process.env.CORS_ORIGIN.split(',').map(s => s.trim()) }
@@ -105,10 +119,11 @@ const UserModel = mongoose.model('User', userSchema);
 // Mongoose Connection
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log(`[User Service] Connected successfully to MongoDB at ${MONGODB_URI}`);
+    console.log(`[User Service] Connected successfully to MongoDB at ${sanitizeMongoUri(MONGODB_URI)}`);
   })
   .catch((err) => {
-    console.error(`[User Service] MongoDB Connection error: ${err.message}`);
+    const safeError = err && err.message ? err.message.replace(/(mongodb(?:\+srv)?:\/\/)[^@]+@/gi, '$1****:****@') : 'Unknown error';
+    console.error(`[User Service] MongoDB Connection error: ${safeError}`);
   });
 
 // Validation helper

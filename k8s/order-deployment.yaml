@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: order-service:v1.0.0
+          image: order-service:v1.0.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -44,7 +44,6 @@ spec:
                 secretKeyRef:
                   name: campusconnect-secrets
                   key: ORDER_MONGODB_URI
-                  optional: true
             - name: CORS_ORIGIN
               valueFrom:
                 configMapKeyRef:

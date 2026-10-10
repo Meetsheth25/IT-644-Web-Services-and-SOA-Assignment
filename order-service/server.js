@@ -17,8 +17,22 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
+function sanitizeMongoUri(rawUri) {
+  if (!rawUri || typeof rawUri !== 'string') return '<undefined>';
+  try {
+    return rawUri.replace(/(mongodb(?:\+srv)?:\/\/)([^:@]+):([^@]+)@/i, '$1****:****@');
+  } catch (e) {
+    return 'mongodb://****:****@<redacted>';
+  }
+}
+
 const PORT = process.env.PORT || process.env.ORDER_SERVICE_PORT || 3003;
-const MONGODB_URI = process.env.MONGODB_URI || process.env.ORDER_MONGODB_URI || 'mongodb://localhost:27017/order_db';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.ORDER_MONGODB_URI;
+
+if (!MONGODB_URI || typeof MONGODB_URI !== 'string' || MONGODB_URI.trim() === '') {
+  console.error('[Order Service Fatal] Missing required database connection string. Set MONGODB_URI or ORDER_MONGODB_URI via campusconnect-secrets.');
+  process.exit(1);
+}
 
 function formatServiceUrl(inputUrl, defaultUrl) {
   if (!inputUrl || typeof inputUrl !== 'string' || inputUrl.trim() === '') {
@@ -133,10 +147,11 @@ const OrderModel = mongoose.model('Order', orderSchema);
 // Mongoose Connection
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log(`[Order Service] Connected successfully to MongoDB at ${MONGODB_URI}`);
+    console.log(`[Order Service] Connected successfully to MongoDB at ${sanitizeMongoUri(MONGODB_URI)}`);
   })
   .catch((err) => {
-    console.error(`[Order Service] MongoDB Connection error: ${err.message}`);
+    const safeError = err && err.message ? err.message.replace(/(mongodb(?:\+srv)?:\/\/)[^@]+@/gi, '$1****:****@') : 'Unknown error';
+    console.error(`[Order Service] MongoDB Connection error: ${safeError}`);
   });
 
 // Inter-Service Communication Helper: Fetch User from User Service
