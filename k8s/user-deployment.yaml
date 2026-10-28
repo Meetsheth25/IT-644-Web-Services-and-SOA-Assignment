@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: user-service:v1.0.1
+          image: ghcr.io/meetsheth25/user-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -1,0 +1,286 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <style>
+      .title { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-weight: bold; font-size: 26px; fill: #F8FAFC; }
+      .subtitle { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 13px; fill: #38BDF8; }
+      .zone-title { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-weight: bold; font-size: 15px; fill: #94A3B8; }
+      .card-title { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-weight: bold; font-size: 13.5px; fill: #F1F5F9; }
+      .card-sub { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 10.5px; fill: #38BDF8; }
+      .card-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 10px; fill: #CBD5E1; }
+      .badge-text { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-weight: bold; font-size: 9px; fill: #FFFFFF; text-anchor: middle; }
+    </style>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10B981" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#FB923C" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#60A5FA" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="#0B1120" />
+
+  <!-- Header -->
+  <rect width="1920" height="90" fill="#1E293B" />
+  <text x="50" y="42" class="title">CampusConnect Microservices — End-to-End Architecture</text>
+  <text x="52" y="72" class="subtitle">IT 644 Web Services &amp; SOA • Lab 8 Final Specification • Kubernetes Orchestration, GHCR CI/CD &amp; Prometheus/Grafana Monitoring</text>
+
+  <!-- Zone 1: Kubernetes Cluster -->
+  <rect x="40" y="120" width="1280" height="630" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" />
+  <text x="56" y="148" class="zone-title">KUBERNETES CLUSTER (Namespace: lab8 • Docker Desktop Control-Plane Ready v1.36.1)</text>
+
+  <!-- Client Card -->
+  <g transform="translate(60, 170)">
+    <rect width="230" height="115" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1.5" />
+    <rect x="135" y="12" width="80" height="20" rx="3" fill="#475569" />
+    <text x="175" y="26" class="badge-text">CLIENT</text>
+    <text x="14" y="28" class="card-title">Client / Postman</text>
+    <text x="14" y="48" class="card-sub">External Traffic Entry</text>
+    <text x="14" y="68" class="card-body">• HTTP REST Calls</text>
+    <text x="14" y="86" class="card-body">• Target: NodePort 30080</text>
+    <text x="14" y="104" class="card-body">• Port-Forward / LB 3000</text>
+  </g>
+
+  <!-- Gateway Service Card -->
+  <g transform="translate(330, 170)">
+    <rect width="270" height="115" rx="10" fill="#1E293B" stroke="#0284C7" stroke-width="1.5" />
+    <rect x="175" y="12" width="80" height="20" rx="3" fill="#0369A1" />
+    <text x="215" y="26" class="badge-text">SERVICE</text>
+    <text x="14" y="28" class="card-title">Gateway Service</text>
+    <text x="14" y="48" class="card-sub">k8s Service (LoadBalancer)</text>
+    <text x="14" y="68" class="card-body">• Selector: app=api-gateway</text>
+    <text x="14" y="86" class="card-body">• Port: 3000 -> 3000</text>
+    <text x="14" y="104" class="card-body">• NodePort: 30080</text>
+  </g>
+
+  <!-- API Gateway Pod Card -->
+  <g transform="translate(640, 170)">
+    <rect width="330" height="150" rx="10" fill="#1E293B" stroke="#0284C7" stroke-width="1.5" />
+    <rect x="235" y="12" width="80" height="20" rx="3" fill="#0284C7" />
+    <text x="275" y="26" class="badge-text">GATEWAY</text>
+    <text x="14" y="28" class="card-title">API Gateway Pod</text>
+    <text x="14" y="48" class="card-sub">Deployment: gateway-deployment</text>
+    <text x="14" y="68" class="card-body">• Image: ghcr.io/meetsheth25/api-gateway:latest</text>
+    <text x="14" y="86" class="card-body">• Port: 3000 • Replicas: 1</text>
+    <text x="14" y="104" class="card-body">• Probes: /health (Liveness &amp; Readiness)</text>
+    <text x="14" y="122" class="card-body">• Metrics: /metrics (prom-client)</text>
+    <text x="14" y="140" class="card-body">• Route Proxies: /users, /products, /orders</text>
+  </g>
+
+  <!-- Microservices Label -->
+  <text x="60" y="358" class="card-title" fill="#38BDF8">Core Microservices Tier (ClusterIP Internal Network)</text>
+
+  <!-- User Service Card -->
+  <g transform="translate(60, 375)">
+    <rect width="285" height="180" rx="10" fill="#1E293B" stroke="#16A34A" stroke-width="1.5" />
+    <rect x="185" y="12" width="85" height="20" rx="3" fill="#15803D" />
+    <text x="227" y="26" class="badge-text">REPLICAS: 3</text>
+    <text x="14" y="28" class="card-title">User Service</text>
+    <text x="14" y="48" class="card-sub">user-service (ClusterIP:3001)</text>
+    <text x="14" y="70" class="card-body">• Image: ghcr.io/meetsheth25/user-service:latest</text>
+    <text x="14" y="90" class="card-body">• Horizontal Scaling: 3 Replicas</text>
+    <text x="14" y="110" class="card-body">• Self-Healing Controller Verified</text>
+    <text x="14" y="130" class="card-body">• Health Probe: GET /health:3001</text>
+    <text x="14" y="150" class="card-body">• Metrics: /metrics (5s scrape)</text>
+    <text x="14" y="170" class="card-body">• CRUD &amp; User Catalog Storage</text>
+  </g>
+
+  <!-- Product Service Card -->
+  <g transform="translate(375, 375)">
+    <rect width="285" height="180" rx="10" fill="#1E293B" stroke="#EAB308" stroke-width="1.5" />
+    <rect x="185" y="12" width="85" height="20" rx="3" fill="#A16207" />
+    <text x="227" y="26" class="badge-text">SERVICE</text>
+    <text x="14" y="28" class="card-title">Product Service</text>
+    <text x="14" y="48" class="card-sub">product-service (ClusterIP:3002)</text>
+    <text x="14" y="70" class="card-body">• Image: ghcr.io/meetsheth25/product-service:latest</text>
+    <text x="14" y="90" class="card-body">• Replicas: 1 (ClusterIP: 3002)</text>
+    <text x="14" y="110" class="card-body">• Health Probe: GET /health:3002</text>
+    <text x="14" y="130" class="card-body">• Metrics: /metrics (5s scrape)</text>
+    <text x="14" y="150" class="card-body">• Product Catalog &amp; Inventory Management</text>
+  </g>
+
+  <!-- Order Service Card -->
+  <g transform="translate(690, 375)">
+    <rect width="300" height="180" rx="10" fill="#1E293B" stroke="#9333EA" stroke-width="1.5" />
+    <rect x="185" y="12" width="100" height="20" rx="3" fill="#7E22CE" />
+    <text x="235" y="26" class="badge-text">ORCHESTRATOR</text>
+    <text x="14" y="28" class="card-title">Order Service</text>
+    <text x="14" y="48" class="card-sub">order-service (ClusterIP:3003)</text>
+    <text x="14" y="70" class="card-body">• Image: ghcr.io/meetsheth25/order-service:latest</text>
+    <text x="14" y="90" class="card-body">• Replicas: 1 (ClusterIP: 3003)</text>
+    <text x="14" y="110" class="card-body">• Internal DNS Orchestration:</text>
+    <text x="24" y="130" class="card-body">-> http://user-service:3001</text>
+    <text x="24" y="150" class="card-body">-> http://product-service:3002</text>
+    <text x="14" y="170" class="card-body">• Health Probe: GET /health:3003</text>
+  </g>
+
+  <!-- Config & Secrets Card -->
+  <g transform="translate(1020, 375)">
+    <rect width="280" height="180" rx="10" fill="#1E293B" stroke="#D97706" stroke-width="1.5" />
+    <rect x="185" y="12" width="80" height="20" rx="3" fill="#B45309" />
+    <text x="225" y="26" class="badge-text">CONFIG</text>
+    <text x="14" y="28" class="card-title">Config &amp; Secrets</text>
+    <text x="14" y="48" class="card-sub">Decoupled Runtime Store</text>
+    <text x="14" y="70" class="card-body">• ConfigMap: campusconnect-config</text>
+    <text x="24" y="88" class="card-body">Service URLs, Ports, CORS</text>
+    <text x="14" y="110" class="card-body">• Secret: campusconnect-secrets</text>
+    <text x="24" y="128" class="card-body">MongoDB Atlas TLS Cloud URIs</text>
+    <text x="14" y="150" class="card-body">• Zero Git Hardcoding (Protected)</text>
+  </g>
+
+  <!-- MongoDB Atlas Card -->
+  <g transform="translate(1020, 170)">
+    <rect width="280" height="160" rx="10" fill="#1E293B" stroke="#059669" stroke-width="1.5" />
+    <rect x="175" y="12" width="90" height="20" rx="3" fill="#047857" />
+    <text x="220" y="26" class="badge-text">MANAGED DB</text>
+    <text x="14" y="28" class="card-title">MongoDB Atlas</text>
+    <text x="14" y="48" class="card-sub">External Managed Cloud DB</text>
+    <text x="14" y="70" class="card-body">• AWS/GCP Dedicated Cluster</text>
+    <text x="14" y="90" class="card-body">• Isolated TLS Connection</text>
+    <text x="14" y="110" class="card-body">• Collections:</text>
+    <text x="24" y="128" class="card-body">user_db.users, product_db.products</text>
+    <text x="24" y="146" class="card-body">order_db.orders</text>
+  </g>
+
+  <!-- Zone 2: Observability & Monitoring -->
+  <rect x="40" y="765" width="1280" height="280" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" />
+  <text x="56" y="793" class="zone-title">OBSERVABILITY &amp; MONITORING STACK (Prometheus &amp; Grafana)</text>
+
+  <!-- Prometheus Card -->
+  <g transform="translate(60, 815)">
+    <rect width="380" height="205" rx="10" fill="#1E293B" stroke="#EA580C" stroke-width="1.5" />
+    <rect x="280" y="12" width="85" height="20" rx="3" fill="#C2410C" />
+    <text x="322" y="26" class="badge-text">SCRAPER</text>
+    <text x="14" y="28" class="card-title">Prometheus Server</text>
+    <text x="14" y="48" class="card-sub">Deployment: prometheus (NodePort:30090)</text>
+    <text x="14" y="70" class="card-body">• ConfigMap: prometheus-config (5s scrape)</text>
+    <text x="14" y="90" class="card-body">• Targets (All Verified UP == 1):</text>
+    <text x="24" y="108" class="card-body">gateway-service:3000, user-service:3001</text>
+    <text x="24" y="126" class="card-body">product-service:3002, order-service:3003</text>
+    <text x="14" y="146" class="card-body">• PromQL: up, rate(http_requests_total[5m])</text>
+    <text x="14" y="166" class="card-body">• P95 latency histogram quantile calculations</text>
+  </g>
+
+  <!-- Traffic Generator Card -->
+  <g transform="translate(470, 815)">
+    <rect width="340" height="205" rx="10" fill="#1E293B" stroke="#2563EB" stroke-width="1.5" />
+    <rect x="235" y="12" width="90" height="20" rx="3" fill="#1D4ED8" />
+    <text x="280" y="26" class="badge-text">WORKLOAD</text>
+    <text x="14" y="28" class="card-title">Traffic Generator</text>
+    <text x="14" y="48" class="card-sub">Script: generate-traffic.js</text>
+    <text x="14" y="70" class="card-body">• Simulates Live User &amp; API Load</text>
+    <text x="14" y="90" class="card-body">• Surge Observed: 3.83 req/s on Gateway</text>
+    <text x="14" y="110" class="card-body">• Tested Operations:</text>
+    <text x="24" y="128" class="card-body">GET /health, GET /users, GET /users/1</text>
+    <text x="24" y="146" class="card-body">GET /products, GET /orders</text>
+    <text x="14" y="166" class="card-body">• Controlled 404 Fault Testing</text>
+  </g>
+
+  <!-- Grafana Dashboard Card -->
+  <g transform="translate(840, 815)">
+    <rect width="460" height="205" rx="10" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5" />
+    <rect x="350" y="12" width="95" height="20" rx="3" fill="#D97706" />
+    <text x="397" y="26" class="badge-text">DASHBOARD</text>
+    <text x="14" y="28" class="card-title">Grafana Dashboard</text>
+    <text x="14" y="48" class="card-sub">Deployment: grafana (NodePort:30300)</text>
+    <text x="14" y="70" class="card-body">• UID: lab8-microservices • 4 Live Operational Panels:</text>
+    <text x="24" y="90" class="card-body">1. Availability (up = 1 / Green UP Stat Display)</text>
+    <text x="24" y="110" class="card-body">2. Traffic Throughput (sum(rate(http_requests_total[1m])))</text>
+    <text x="24" y="130" class="card-body">3. Error Rate (status_code=~"5.." Server Faults)</text>
+    <text x="24" y="150" class="card-body">4. P95 Request Latency (histogram_quantile)</text>
+    <text x="14" y="172" class="card-body">• Auto-Provisioned via ConfigMap &amp; Admin Secret</text>
+  </g>
+
+  <!-- Zone 3: GitHub Actions CI/CD & GHCR -->
+  <rect x="1340" y="120" width="540" height="925" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" />
+  <text x="1356" y="148" class="zone-title">CI/CD &amp; CONTAINER REGISTRY (GitHub Actions &amp; GHCR)</text>
+
+  <!-- GitHub Repo Card -->
+  <g transform="translate(1360, 170)">
+    <rect width="500" height="130" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1.5" />
+    <rect x="405" y="12" width="80" height="20" rx="3" fill="#334155" />
+    <text x="445" y="26" class="badge-text">VCS</text>
+    <text x="14" y="28" class="card-title">GitHub Repository</text>
+    <text x="14" y="48" class="card-sub">Meetsheth25/IT-644-Web-Services-and-SOA-Assignment</text>
+    <text x="14" y="72" class="card-body">• Branch: master / main</text>
+    <text x="14" y="92" class="card-body">• Automated Triggers: push &amp; pull_request</text>
+    <text x="14" y="112" class="card-body">• Zero Secret Exposure (Only .example templates committed)</text>
+  </g>
+
+  <!-- CI Pipeline Card -->
+  <g transform="translate(1360, 320)">
+    <rect width="500" height="240" rx="10" fill="#1E293B" stroke="#2563EB" stroke-width="1.5" />
+    <rect x="395" y="12" width="90" height="20" rx="3" fill="#1D4ED8" />
+    <text x="440" y="26" class="badge-text">CI PIPELINE</text>
+    <text x="14" y="28" class="card-title">GitHub Actions CI Pipeline</text>
+    <text x="14" y="48" class="card-sub">.github/workflows/ci.yml (Runner: ubuntu-latest)</text>
+    <text x="14" y="72" class="card-body">1. Setup: Node.js 20.x &amp; Docker Buildx</text>
+    <text x="14" y="92" class="card-body">2. Dependency Install: Clean npm ci across all 4 services</text>
+    <text x="14" y="112" class="card-body">3. Automated Tests: npm test for Gateway, User, Product, Order (PASS)</text>
+    <text x="14" y="132" class="card-body">4. Docker Build &amp; Multi-Tagging:</text>
+    <text x="24" y="152" class="card-body">Tag: ghcr.io/meetsheth25/&lt;service&gt;:${GITHUB_SHA}</text>
+    <text x="24" y="172" class="card-body">Tag: ghcr.io/meetsheth25/&lt;service&gt;:latest</text>
+    <text x="14" y="194" class="card-body">5. Secure Registry Auth: GITHUB_TOKEN (packages: write)</text>
+    <text x="14" y="214" class="card-body">6. Push: Automated image delivery to GHCR</text>
+  </g>
+
+  <!-- GHCR Card -->
+  <g transform="translate(1360, 580)">
+    <rect width="500" height="185" rx="10" fill="#1E293B" stroke="#0284C7" stroke-width="1.5" />
+    <rect x="395" y="12" width="90" height="20" rx="3" fill="#0369A1" />
+    <text x="440" y="26" class="badge-text">REGISTRY</text>
+    <text x="14" y="28" class="card-title">GitHub Container Registry (GHCR)</text>
+    <text x="14" y="48" class="card-sub">ghcr.io/meetsheth25</text>
+    <text x="14" y="72" class="card-body">• Centralized High-Availability Container Store</text>
+    <text x="14" y="92" class="card-body">• Published Versioned Microservice Packages:</text>
+    <text x="24" y="112" class="card-body">ghcr.io/meetsheth25/api-gateway</text>
+    <text x="24" y="130" class="card-body">ghcr.io/meetsheth25/user-service</text>
+    <text x="24" y="148" class="card-body">ghcr.io/meetsheth25/product-service</text>
+    <text x="24" y="166" class="card-body">ghcr.io/meetsheth25/order-service</text>
+  </g>
+
+  <!-- Rollout / CD Card -->
+  <g transform="translate(1360, 785)">
+    <rect width="500" height="235" rx="10" fill="#1E293B" stroke="#16A34A" stroke-width="1.5" />
+    <rect x="390" y="12" width="95" height="20" rx="3" fill="#15803D" />
+    <text x="437" y="26" class="badge-text">ROLLOUT / CD</text>
+    <text x="14" y="28" class="card-title">Kubernetes Rollout &amp; Continuous Delivery</text>
+    <text x="14" y="48" class="card-sub">Safe Automated &amp; Manual Deployment</text>
+    <text x="14" y="72" class="card-body">• CD Access Check: Evaluates secrets.KUBECONFIG</text>
+    <text x="14" y="92" class="card-body">• Automated Cluster Update Command:</text>
+    <text x="24" y="112" class="card-body">kubectl set image deployment/&lt;name&gt; &lt;container&gt;=ghcr.io/...:${SHA} -n lab8</text>
+    <text x="14" y="134" class="card-body">• Zero-Downtime Rolling Update &amp; Rollout Status:</text>
+    <text x="24" y="154" class="card-body">kubectl rollout status deployment/user-service -n lab8</text>
+    <text x="14" y="176" class="card-body">• Local Clusters (Docker Desktop): Manual execution procedure</text>
+    <text x="24" y="196" class="card-body">documented without exposing private control plane to WAN</text>
+    <text x="14" y="218" class="card-body">• Rollback Support: kubectl rollout undo deployment/user-service -n lab8</text>
+  </g>
+
+  <!-- Arrows -->
+  <line x1="290" y1="227" x2="325" y2="227" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-cyan)" />
+  <line x1="600" y1="227" x2="635" y2="227" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-cyan)" />
+
+  <line x1="700" y1="320" x2="200" y2="370" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-cyan)" />
+  <line x1="770" y1="320" x2="500" y2="370" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-cyan)" />
+  <line x1="840" y1="320" x2="800" y2="370" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-cyan)" />
+
+  <line x1="990" y1="420" x2="1015" y2="260" stroke="#10B981" stroke-width="2" marker-end="url(#arrow-green)" />
+
+  <line x1="200" y1="555" x2="200" y2="810" stroke="#FB923C" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow-orange)" />
+  <line x1="500" y1="555" x2="300" y2="810" stroke="#FB923C" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow-orange)" />
+  <line x1="750" y1="555" x2="350" y2="810" stroke="#FB923C" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow-orange)" />
+
+  <line x1="440" y1="915" x2="835" y2="915" stroke="#FB923C" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow-orange)" />
+
+  <line x1="600" y1="815" x2="600" y2="325" stroke="#60A5FA" stroke-width="2" marker-end="url(#arrow-blue)" />
+
+  <line x1="1610" y1="300" x2="1610" y2="315" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+  <line x1="1610" y1="560" x2="1610" y2="575" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+  <line x1="1610" y1="765" x2="1610" y2="780" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+</svg>

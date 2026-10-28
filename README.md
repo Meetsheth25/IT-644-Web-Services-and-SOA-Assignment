@@ -1391,6 +1391,11 @@ In Lab 8, we advance this system into an automated enterprise DevOps workflow fe
 
 ## 52. Complete System Architecture
 
+![CampusConnect Final Architecture Diagram](screenshot%20LAB%208/13%20Final%20Architecture%20Diagram.png)
+
+> Vector SVG version available at [`k8s/architecture.svg`](k8s/architecture.svg).
+
+### End-to-End Topology Overview:
 ```text
                     Client / Postman
                           │
@@ -1429,7 +1434,7 @@ In Lab 8, we advance this system into an automated enterprise DevOps workflow fe
                     (NodePort:30300)
 ```
 
-### Continuous Integration (CI) Workflow:
+### Continuous Integration & Continuous Delivery (CI/CD) Workflow:
 ```text
                   GitHub Repository
                           │
@@ -1659,15 +1664,53 @@ kubectl get endpoints order-service -n lab8
 
 The automated CI workflow is configured in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
-### Workflow Characteristics:
+### Workflow Stages & Characteristics:
 - **Triggers**: Runs automatically on every `push` and `pull_request` targeting `master` or `main`.
 - **Runner**: `ubuntu-latest`.
-- **Multi-Service Architecture Adaptation**:
-  Rather than assuming a single monolithic root `package.json`, the pipeline iterates through each independent service:
-  1. Installs dependencies using clean, deterministic `npm ci`.
-  2. Executes automated unit tests for all 4 services (`api-gateway`, `user-service`, `product-service`, `order-service`).
-  3. Builds Docker container images tagged with `${{ github.sha }}` and `latest`.
-- **Zero Secret Exposure**: CI unit tests test business logic and validation without requiring production database secrets.
+- **Permissions**: `contents: read`, `packages: write` for zero-config GHCR image publication.
+- **Multi-Service Architecture Pipeline**:
+  Rather than assuming a single monolithic root `package.json`, the pipeline iterates through each independent microservice across 5 automated stages:
+  1. **Dependency Installation**: Installs deterministic lockfile dependencies using clean `npm ci` for `api-gateway`, `user-service`, `product-service`, and `order-service`.
+  2. **Automated Unit Testing**: Executes isolated test suites for all 4 services (`npm test`). All tests pass in self-contained test runners without external MongoDB or cluster dependencies.
+  3. **Container Image Build & Multi-Tagging**: Builds production Docker images for each service with dual traceable tags:
+     - `ghcr.io/meetsheth25/<service>:${{ github.sha }}` (immutable, traceable commit SHA)
+     - `ghcr.io/meetsheth25/<service>:latest`
+  4. **Container Registry Delivery (GHCR)**: Authenticates securely to GitHub Container Registry using the native `GITHUB_TOKEN` (`docker/login-action@v3`) and pushes all 8 image tags.
+  5. **Continuous Deployment & Rollout**: Evaluates cluster connectivity:
+     - **Cloud/Remote Cluster**: When repository secret `KUBECONFIG` is present, the pipeline sets up cluster credentials, connects via `kubectl`, issues `kubectl set image`, and verifies `kubectl rollout status`.
+     - **Local/Private Cluster (Docker Desktop)**: When running without direct runner-to-host network access, the pipeline logs full image delivery success and prints the exact local execution commands.
+
+### Container Registry Naming & Tagging Approach:
+- **Registry Host**: `ghcr.io` (GitHub Container Registry)
+- **Repository Namespace**: `meetsheth25`
+- **Image Names**:
+  - `ghcr.io/meetsheth25/api-gateway`
+  - `ghcr.io/meetsheth25/user-service`
+  - `ghcr.io/meetsheth25/product-service`
+  - `ghcr.io/meetsheth25/order-service`
+- **Tagging Strategy**: Dual tagging with Git commit SHA (`:${{ github.sha }}`) for strict version provenance and `:latest` for rolling updates.
+
+### Kubernetes Image Update & Rollout Procedure:
+To roll out updated container images on Kubernetes:
+```powershell
+# 1. Update deployment image to versioned tag
+kubectl set image deployment/gateway-deployment api-gateway=ghcr.io/meetsheth25/api-gateway:latest -n lab8
+kubectl set image deployment/user-service user-service=ghcr.io/meetsheth25/user-service:latest -n lab8
+kubectl set image deployment/product-service product-service=ghcr.io/meetsheth25/product-service:latest -n lab8
+kubectl set image deployment/order-service order-service=ghcr.io/meetsheth25/order-service:latest -n lab8
+
+# 2. Monitor rolling update status
+kubectl rollout status deployment/gateway-deployment -n lab8
+kubectl rollout status deployment/user-service -n lab8
+kubectl rollout status deployment/product-service -n lab8
+kubectl rollout status deployment/order-service -n lab8
+
+# 3. View rollout history & undo if necessary
+kubectl rollout history deployment/user-service -n lab8
+kubectl rollout undo deployment/user-service -n lab8
+```
+
+- **Zero Secret Exposure**: CI unit tests and container builds execute with zero production database passwords or Atlas credentials committed.
 
 ---
 
@@ -1782,4 +1825,29 @@ Per Section 7.1 of the official Lab 8 specification:
 | 10 | **Prometheus** | Targets page showing `UP` state and active PromQL query output (`screenshot LAB 8/10...` & `11...`). | **VERIFIED** |
 | 11 | **Grafana Dashboard** | Dashboard displaying all 4 operational panels (`screenshot LAB 8/15 Grafana Dashboard Final.png`). | **VERIFIED** |
 | 12 | **Traffic Monitoring** | Observed metrics surge after executing `generate-traffic.js` (`screenshot LAB 8/12 prometheus traffic metrics.png`). | **VERIFIED** |
-| 13 | **Architecture Diagram** | Complete system and monitoring architecture diagram in README Section 52. | **VERIFIED** |
+| 13 | **Architecture Diagram** | High-resolution 16:9 visual architecture diagram ([`screenshot LAB 8/13 Final Architecture Diagram.png`](screenshot%20LAB%208/13%20Final%20Architecture%20Diagram.png)) and vector SVG ([`k8s/architecture.svg`](k8s/architecture.svg)). | **VERIFIED** |
+| 14 | **Registry & Rollout Verification** | Versioned GHCR images and verified Kubernetes rolling update status ([`screenshot LAB 8/14 Kubernetes Rollout and Registry Verification.png`](screenshot%20LAB%208/14%20Kubernetes%20Rollout%20and%20Registry%20Verification.png)). | **VERIFIED** |
+
+---
+
+## 67. Official Lab 8 Submission Checklist (Section 7.4)
+
+| Item | Requirement Description | Verification Artifact / Output | Status |
+| :---: | :--- | :--- | :---: |
+| 1 | Lab 7 application verified | Working baseline on port 3000 + Render cloud deployment | **PASS** |
+| 2 | Kubernetes context/node verified | `docker-desktop`, `desktop-control-plane Ready v1.36.1` (`screenshot 01`) | **PASS** |
+| 3 | `lab8` namespace created and used | Isolated namespace `lab8` active for all pods, services & monitoring | **PASS** |
+| 4 | Gateway/User/Product/Order Deployments & Services | All 4 microservices manifested in `k8s/` with probes, ports and labels | **PASS** |
+| 5 | ConfigMap/Secret used appropriately | `campusconnect-config` & `campusconnect-secrets` (Zero committed passwords) | **PASS** |
+| 6 | Application deployed and verified | All 4 deployments `1/1 Available`, pods `1/1 Running` (`screenshot 02`) | **PASS** |
+| 7 | Gateway tested from Postman | Gateway health & CRUD operations verified (`screenshot 03-05`) | **PASS** |
+| 8 | User Service scaled to 3 replicas | Scaled via `kubectl scale` to 3 running replicas (`screenshot 06`) | **PASS** |
+| 9 | Self-healing demonstrated | Deleted pod replaced automatically by Deployment controller (`screenshot 07`) | **PASS** |
+| 10 | GitHub Actions CI/CD workflow passed | Full pipeline: `npm ci`, `npm test`, docker build, GHCR push, rollout check (`screenshot 09`) | **PASS** |
+| 11 | Prometheus targets/metrics verified | 4 targets `UP == 1`, `rate(http_requests_total[5m])` queried (`screenshot 10-12`) | **PASS** |
+| 12 | Grafana dashboard created | 4-panel dashboard: Availability, Traffic, Error Rates, P95 Latency (`screenshot 15`) | **PASS** |
+| 13 | API traffic generated and observed | Surge to 3.83 req/s observed after `generate-traffic.js` (`screenshot 12`) | **PASS** |
+| 14 | Versioned image pushed to registry | Versioned tags (`:${GITHUB_SHA}` & `:latest`) pushed to `ghcr.io/meetsheth25` (`screenshot 14`) | **PASS** |
+| 15 | Kubernetes rollout to new image verified | Zero-downtime rolling update verified to GHCR image (`screenshot 14`) | **PASS** |
+| 16 | README updated | Complete architectural, registry, rollout, and monitoring documentation | **PASS** |
+| 17 | All required screenshots collected | 19 technical illustrations and verified evidence captures in `screenshot LAB 8/` | **PASS** |

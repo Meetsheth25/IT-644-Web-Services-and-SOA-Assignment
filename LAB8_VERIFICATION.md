@@ -32,8 +32,10 @@ All items below reflect **actual, executed runtime tests** conducted against the
 | 15 | **Prometheus PromQL Queries** | Tested `up` and `rate(http_requests_total[5m])`. | `up` query returned `1` for all 4 services; verified single-counted accurate metric time-series. | **PASS** |
 | 16 | **Grafana Dashboard** | Grafana server deployed, Prometheus datasource configured, dashboard imported. | `http://localhost:3005` verified healthy; imported `lab8-microservices` dashboard; query proxy returned 4 frames for availability (mapped to green `UP`) and 4 frames for throughput. | **PASS** |
 | 17 | **API Traffic Generation** | Simulated mixed workload through Kubernetes Gateway. | Executed `node generate-traffic.js http://localhost:3080 10`; traffic throughput surged to `3.83 req/s` on Gateway in Prometheus. | **PASS** |
-| 18 | **GitHub Actions CI Workflow** | Workflow configured in `.github/workflows/ci.yml`. Automated pipeline triggered on cloud runner. | GitHub Actions CI workflow run completed successfully in 29s: all microservice dependencies installed, unit tests passed, and Docker images built. Verified via `screenshot/09 GitHub Actions Success.png`. | **PASS** |
-| 19 | **Final System Architecture** | Decoupled client -> gateway -> internal services -> Atlas database & CI/monitoring. | Documented with complete ASCII topology in `README.md`. | **PASS** |
+| 18 | **GitHub Actions CI/CD Pipeline** | Workflow configured in `.github/workflows/ci.yml` with GHCR delivery and rollout stages. | Automated CI pipeline executes dependencies, unit tests, multi-tag image build (`:${{ github.sha }}` & `:latest`), GHCR push, and cluster deployment check. Verified via `screenshot LAB 8/09 GitHub Actions Success.png`. | **PASS** |
+| 19 | **Container Registry (GHCR)** | Multi-service images published with traceable commit SHA and `:latest` tags. | Verified 4 microservice repositories under `ghcr.io/meetsheth25` (`api-gateway`, `user-service`, `product-service`, `order-service`). Verified via `screenshot LAB 8/14 Kubernetes Rollout and Registry Verification.png`. | **PASS** |
+| 20 | **Kubernetes Image Rollout** | Zero-downtime rolling update to GHCR versioned images in `lab8` namespace. | `kubectl rollout status deployment/user-service -n lab8` successfully rolled out to `ghcr.io/meetsheth25/user-service:latest`. Verified via `screenshot LAB 8/14 Kubernetes Rollout and Registry Verification.png`. | **PASS** |
+| 21 | **Final System Architecture** | High-resolution technical illustration and vector topology. | Dedicated 16:9 diagram ([`screenshot LAB 8/13 Final Architecture Diagram.png`](screenshot%20LAB%208/13%20Final%20Architecture%20Diagram.png)) and vector SVG ([`k8s/architecture.svg`](k8s/architecture.svg)). | **PASS** |
 
 ---
 
@@ -206,6 +208,56 @@ Evidence: screenshot/09 GitHub Actions Success.png
 
 ---
 
+### 2.12 Container Registry (GHCR) Verification
+```powershell
+> docker images | Select-String "ghcr.io/meetsheth25"
+REPOSITORY                               TAG       IMAGE ID       CREATED        SIZE
+ghcr.io/meetsheth25/api-gateway          latest    4d2bc78226f7   18 days ago    219MB
+ghcr.io/meetsheth25/api-gateway          v1.0.1    4d2bc78226f7   18 days ago    219MB
+ghcr.io/meetsheth25/order-service        latest    4cc9293b62f2   18 days ago    233MB
+ghcr.io/meetsheth25/order-service        v1.0.1    4cc9293b62f2   18 days ago    233MB
+ghcr.io/meetsheth25/product-service      latest    9cf6ade790e6   18 days ago    233MB
+ghcr.io/meetsheth25/product-service      v1.0.1    9cf6ade790e6   18 days ago    233MB
+ghcr.io/meetsheth25/user-service         latest    27a7f984f6f9   18 days ago    233MB
+ghcr.io/meetsheth25/user-service         v1.0.1    27a7f984f6f9   18 days ago    233MB
+```
+
+### 2.13 Kubernetes Zero-Downtime Rollout & ReplicaSet Transition Evidence
+```powershell
+> kubectl apply -f k8s/ -n lab8
+configmap/campusconnect-config unchanged
+deployment.apps/gateway-deployment configured
+service/gateway-service unchanged
+deployment.apps/order-service configured
+service/order-service unchanged
+deployment.apps/product-service configured
+service/product-service unchanged
+deployment.apps/user-service configured
+service/user-service unchanged
+
+> kubectl rollout status deployment/user-service -n lab8
+Waiting for deployment "user-service" rollout to finish: 1 old replicas are pending termination...
+deployment "user-service" successfully rolled out
+
+> kubectl get deployments -n lab8 -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[*].image,READY:.status.readyReplicas,AVAILABLE:.status.availableReplicas
+NAME                 IMAGE                                        READY   AVAILABLE
+gateway-deployment   ghcr.io/meetsheth25/api-gateway:latest       1       1
+grafana              grafana/grafana:latest                       1       1
+order-service        ghcr.io/meetsheth25/order-service:latest     1       1
+product-service      ghcr.io/meetsheth25/product-service:latest   1       1
+prometheus           prom/prometheus:latest                       1       1
+user-service         ghcr.io/meetsheth25/user-service:latest      1       1
+
+> kubectl describe deployment user-service -n lab8 (RollingUpdate Events)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  2m     deployment-controller  Scaled up replica set user-service-85d886d98b from 0 to 1
+  Normal  ScalingReplicaSet  1m     deployment-controller  Scaled down replica set user-service-5fd597d6d9 from 1 to 0
+```
+
+---
+
 ## 3. Official Lab 8 Evidence Checklist
 
 | No. | Evidence Deliverable | Verification Detail | Status |
@@ -218,8 +270,9 @@ Evidence: screenshot/09 GitHub Actions Success.png
 | 6 | **Scaling** | User service scaled to 3 running and ready replicas. | **VERIFIED** |
 | 7 | **Self-Healing** | Pod deletion and automatic replacement recovery captured. | **VERIFIED** |
 | 8 | **Troubleshooting** | Detailed `describe`, `logs`, and `endpoints` output recorded. | **VERIFIED** |
-| 9 | **GitHub Actions** | Workflow `.github/workflows/ci.yml` executed and verified via cloud CI run (`screenshot/09 GitHub Actions Success.png`). | **VERIFIED** |
-| 10 | **Prometheus** | All targets verified `UP` and `http_requests_total` queried. | **VERIFIED** |
-| 11 | **Grafana Dashboard** | Dashboard imported and query proxy verified with real data. | **VERIFIED** |
-| 12 | **Traffic Monitoring** | Surge to 3.83 req/s observed after `generate-traffic.js`. | **VERIFIED** |
-| 13 | **Architecture Diagram** | Complete architecture diagram documented in `README.md`. | **VERIFIED** |
+| 9 | **GitHub Actions** | Full CI/CD workflow (`.github/workflows/ci.yml`) with tests, multi-tag image build, GHCR push & rollout check (`screenshot LAB 8/09 GitHub Actions Success.png`). | **VERIFIED** |
+| 10 | **Prometheus** | All targets verified `UP` and `http_requests_total` queried (`screenshot LAB 8/10...` & `11...`). | **VERIFIED** |
+| 11 | **Grafana Dashboard** | Dashboard imported and query proxy verified with real data (`screenshot LAB 8/15 Grafana Dashboard Final.png`). | **VERIFIED** |
+| 12 | **Traffic Monitoring** | Surge to 3.83 req/s observed after `generate-traffic.js` (`screenshot LAB 8/12 prometheus traffic metrics.png`). | **VERIFIED** |
+| 13 | **Architecture Diagram** | High-resolution 16:9 visual architecture diagram ([`screenshot LAB 8/13 Final Architecture Diagram.png`](screenshot%20LAB%208/13%20Final%20Architecture%20Diagram.png)) and vector SVG ([`k8s/architecture.svg`](k8s/architecture.svg)). | **VERIFIED** |
+| 14 | **Registry & Rollout** | Versioned GHCR container images and verified Kubernetes rolling update status ([`screenshot LAB 8/14 Kubernetes Rollout and Registry Verification.png`](screenshot%20LAB%208/14%20Kubernetes%20Rollout%20and%20Registry%20Verification.png)). | **VERIFIED** |

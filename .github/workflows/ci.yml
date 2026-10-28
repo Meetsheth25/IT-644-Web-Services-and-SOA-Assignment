@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -6,9 +6,13 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  build-test:
-    name: Build, Test & Containerize Microservices
+  build-test-push:
+    name: Build, Test, Push to GHCR & Deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
 
       - name: Install Dependencies - API Gateway
         working-directory: ./api-gateway
@@ -53,14 +56,98 @@ jobs:
         working-directory: ./order-service
         run: npm test
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set Image Prefix Environment Variable
+        run: |
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PREFIX=ghcr.io/${OWNER_LOWER}" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker Image - API Gateway
-        run: docker build -t api-gateway:${{ github.sha }} -t api-gateway:latest ./api-gateway
+        run: |
+          docker build \
+            -t $IMAGE_PREFIX/api-gateway:${{ github.sha }} \
+            -t $IMAGE_PREFIX/api-gateway:latest \
+            ./api-gateway
 
       - name: Build Docker Image - User Service
-        run: docker build -t user-service:${{ github.sha }} -t user-service:latest ./user-service
+        run: |
+          docker build \
+            -t $IMAGE_PREFIX/user-service:${{ github.sha }} \
+            -t $IMAGE_PREFIX/user-service:latest \
+            ./user-service
 
       - name: Build Docker Image - Product Service
-        run: docker build -t product-service:${{ github.sha }} -t product-service:latest ./product-service
+        run: |
+          docker build \
+            -t $IMAGE_PREFIX/product-service:${{ github.sha }} \
+            -t $IMAGE_PREFIX/product-service:latest \
+            ./product-service
 
       - name: Build Docker Image - Order Service
-        run: docker build -t order-service:${{ github.sha }} -t order-service:latest ./order-service
+        run: |
+          docker build \
+            -t $IMAGE_PREFIX/order-service:${{ github.sha }} \
+            -t $IMAGE_PREFIX/order-service:latest \
+            ./order-service
+
+      - name: Push Docker Images to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          docker push $IMAGE_PREFIX/api-gateway:${{ github.sha }}
+          docker push $IMAGE_PREFIX/api-gateway:latest
+          docker push $IMAGE_PREFIX/user-service:${{ github.sha }}
+          docker push $IMAGE_PREFIX/user-service:latest
+          docker push $IMAGE_PREFIX/product-service:${{ github.sha }}
+          docker push $IMAGE_PREFIX/product-service:latest
+          docker push $IMAGE_PREFIX/order-service:${{ github.sha }}
+          docker push $IMAGE_PREFIX/order-service:latest
+
+      - name: Check Kubernetes Access & Deploy
+        if: github.event_name != 'pull_request'
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+        run: |
+          if [ -n "$KUBECONFIG_SECRET" ]; then
+            echo "KUBECONFIG secret detected. Configuring cluster context..."
+            mkdir -p $HOME/.kube
+            echo "$KUBECONFIG_SECRET" > $HOME/.kube/config
+            chmod 600 $HOME/.kube/config
+
+            echo "Verifying cluster connectivity..."
+            kubectl cluster-info
+
+            echo "Rolling out versioned images (${{ github.sha }}) to namespace lab8..."
+            kubectl set image deployment/gateway-deployment api-gateway=$IMAGE_PREFIX/api-gateway:${{ github.sha }} -n lab8
+            kubectl set image deployment/user-service user-service=$IMAGE_PREFIX/user-service:${{ github.sha }} -n lab8
+            kubectl set image deployment/product-service product-service=$IMAGE_PREFIX/product-service:${{ github.sha }} -n lab8
+            kubectl set image deployment/order-service order-service=$IMAGE_PREFIX/order-service:${{ github.sha }} -n lab8
+
+            echo "Waiting for rollouts to finish..."
+            kubectl rollout status deployment/gateway-deployment -n lab8 --timeout=120s
+            kubectl rollout status deployment/user-service -n lab8 --timeout=120s
+            kubectl rollout status deployment/product-service -n lab8 --timeout=120s
+            kubectl rollout status deployment/order-service -n lab8 --timeout=120s
+
+            echo "Rollout completed successfully!"
+          else
+            echo "=========================================================================="
+            echo "NOTICE: KUBECONFIG secret not configured on repository."
+            echo "Image publication to GHCR succeeded with tag ${{ github.sha }}."
+            echo "For local/manual Kubernetes clusters, execute the following rollout commands:"
+            echo "  kubectl set image deployment/gateway-deployment api-gateway=$IMAGE_PREFIX/api-gateway:${{ github.sha }} -n lab8"
+            echo "  kubectl set image deployment/user-service user-service=$IMAGE_PREFIX/user-service:${{ github.sha }} -n lab8"
+            echo "  kubectl set image deployment/product-service product-service=$IMAGE_PREFIX/product-service:${{ github.sha }} -n lab8"
+            echo "  kubectl set image deployment/order-service order-service=$IMAGE_PREFIX/order-service:${{ github.sha }} -n lab8"
+            echo "  kubectl rollout status deployment/user-service -n lab8"
+            echo "=========================================================================="
+          fi

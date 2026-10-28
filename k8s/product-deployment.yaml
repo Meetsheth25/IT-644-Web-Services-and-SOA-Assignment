@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: product-service:v1.0.1
+          image: ghcr.io/meetsheth25/product-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
