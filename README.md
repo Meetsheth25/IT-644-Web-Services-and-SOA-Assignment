@@ -1861,7 +1861,7 @@ Per Section 7.1 of the official Lab 8 specification:
 
 The objective of **Lab 9** is to extend the existing **CampusConnect Microservices Platform** (Labs 3–8) with a hosted **Generative AI API integration** while preserving all previous lab functionality:
 
-1. **Hosted AI Integration**: Integrates Google Gemini (`gemini-3.8-flash`) into a dedicated backend microservice (`ai-service`) on port `3004`.
+1. **Hosted AI Integration**: Integrates Google Gemini (`gemini-3.6-flash`, with `gemini-3.8-flash` compatibility) into a dedicated backend microservice (`ai-service`) on port `3004`. During live verification, `gemini-3.8-flash` encountered Google's Free Tier daily quota limit of 20 requests/day (HTTP 429 `RESOURCE_EXHAUSTED`), and `gemini-3.6-flash` was selected and verified as the active operational model.
 2. **Single Entry Point Routing**: The API Gateway (`api-gateway`, port 3000) dynamically routes all `/api/ai/*` traffic to the AI service, preserving the exact path without rewriting.
 3. **Strict Credential Perimeter**: The provider secret key (`AI_API_KEY`) is stored exclusively in the backend configuration of `ai-service` (or Kubernetes Secret `campusconnect-secrets`). Neither the client, the API Gateway, nor the User, Product, or Order services ever have access to the API key.
 4. **Prompt Engineering & Grounding**: System instructions specify an expert academic tutor persona with strict passage-grounding rules and untrusted data boundaries to mitigate prompt injection.
@@ -1901,12 +1901,12 @@ The objective of **Lab 9** is to extend the existing **CampusConnect Microservic
  │     - Validates presence of server AI_API_KEY          │
  │     - Prepares systemInstruction (isolated)            │
  │     - Prepares contents payload (untrusted input)      │
- │     - Configures AbortController timeout (30,000ms)    │
+ │     - Configures AbortController timeout (240,000ms)   │
  └─────────────────────────┬──────────────────────────────┘
                            │
                            ▼ (Outbound HTTPS / Port 443)
  ┌────────────────────────────────────────────────────────┐
- │          Google Gemini API (gemini-3.8-flash)          │
+ │          Google Gemini API (gemini-3.6-flash)          │
  │  - Processes systemInstruction + untrusted user text   │
  │  - Applies structured JSON schema mode                 │
  └─────────────────────────┬──────────────────────────────┘
@@ -1961,23 +1961,23 @@ The CampusConnect AI Study Assistant supports 4 academic tasks:
 {
   "success": true,
   "task": "summarize",
-  "model": "gemini-3.8-flash",
   "result": {
-    "title": "Service-Oriented Architecture & API Gateways",
-    "summary": "Service-Oriented Architecture (SOA) enables software components to communicate and deliver functionality over a network through standard protocols. Within this architecture, an API Gateway functions as a centralized reverse proxy that intercepts client requests, applies security and throttling policies, and delegates traffic to backend microservices, thereby shielding clients from internal service partitioning.",
+    "title": "Overview of Service-Oriented Architecture (SOA)",
+    "summary": "Service-Oriented Architecture (SOA) is a software engineering architectural style where independent services deliver specific functionality to other system components. Communication and interaction between these services and components occur across a network utilizing a designated communication protocol.",
     "key_points": [
-      "SOA organizes software into network-accessible, protocol-driven services.",
-      "An API Gateway serves as a single entry point for routing and policy enforcement.",
-      "Gateways insulate external clients from internal microservice decomposition."
+      "SOA is an architectural style in software engineering.",
+      "Services deliver functionality to other components.",
+      "Inter-component communication relies on protocols over a network."
     ],
-    "word_count": 52
+    "word_count": 36
   },
   "metadata": {
+    "model": "gemini-3.6-flash",
     "provider": "gemini",
-    "latency_ms": 1140,
-    "input_length": 346,
+    "latency_ms": 5935,
+    "input_length": 268,
     "ai_generated": true,
-    "timestamp": "2026-10-30T15:10:00.000Z"
+    "timestamp": "2026-10-30T11:35:05.120Z"
   }
 }
 ```
@@ -1990,7 +1990,7 @@ Executes the Basic Prompt (minimal baseline) and the Improved Prompt (structured
 ```json
 {
   "task": "summarize",
-  "input": "Kubernetes is an open-source container orchestration system for automating software deployment, scaling, and management."
+  "input": "Kubernetes is an open-source container orchestration system for automating software deployment, scaling, and management. It groups containers that make up an application into logical units for easy management and discovery."
 }
 ```
 
@@ -1999,33 +1999,30 @@ Executes the Basic Prompt (minimal baseline) and the Improved Prompt (structured
 {
   "success": true,
   "task": "summarize",
-  "model": "gemini-3.8-flash",
-  "input_passage": "Kubernetes is an open-source container orchestration system...",
+  "model": "gemini-3.6-flash",
   "comparison": {
     "basic": {
       "prompt_type": "Basic / Minimal Baseline",
-      "prompt_text": "Summarize this text:\nKubernetes is an open-source...",
-      "output": "Kubernetes is a container orchestration platform that automates software deployment and scaling.",
+      "prompt_text": "Summarize this text:\nKubernetes is an open-source container orchestration system...",
+      "output": "**Summary:** \n\nKubernetes is an open-source container orchestration system that automates software deployment, scaling, and management by grouping application containers into logical units for easier management and discovery.",
       "output_format": "plain_text",
-      "word_count": 14,
-      "latency_ms": 680
+      "latency_ms": 3816
     },
     "improved": {
       "prompt_type": "Improved / Structured Academic Tutor",
       "prompt_system_instruction": "Role: Expert academic tutor...",
       "output": {
-        "title": "Introduction to Kubernetes",
-        "summary": "Kubernetes is an open-source orchestration engine that automates containerized application deployment, scaling, and operational management across computing clusters.",
+        "title": "Overview of Kubernetes",
+        "summary": "Kubernetes is an open-source container orchestration platform designed to automate the deployment, scaling, and management of software. By grouping application containers into logical units, it simplifies both system management and discovery.",
         "key_points": [
-          "Automates deployment and scaling of containers",
-          "Open-source cloud-native standard",
-          "Simplifies multi-container management"
+          "Kubernetes serves as an open-source container orchestration system.",
+          "It automates software deployment, scaling, and management processes.",
+          "It organizes application containers into logical units to facilitate management and discovery."
         ],
-        "word_count": 21
+        "word_count": 32
       },
       "output_format": "structured_json",
-      "word_count": 21,
-      "latency_ms": 1120
+      "latency_ms": 5460
     }
   }
 }
@@ -2043,8 +2040,8 @@ Returns metadata regarding available tasks, length limits, and model configurati
 | `PORT` | `3004` | `3004` | Injected via `PORT_AI` | AI Service port |
 | `AI_SERVICE_URL` | `http://localhost:3004` | `http://ai-service:3004` | `http://ai-service:3004` | URL used by Gateway |
 | `AI_PROVIDER` | `gemini` | `gemini` | `gemini` | Provider adapter |
-| `AI_MODEL` | `gemini-3.8-flash` | `gemini-3.8-flash` | `gemini-3.8-flash` | Model identifier |
-| `AI_TIMEOUT_MS` | `30000` | `30000` | `30000` | Request timeout |
+| `AI_MODEL` | `gemini-3.6-flash` | `gemini-3.6-flash` | `gemini-3.6-flash` | Active model identifier (gemini-3.8-flash compatible) |
+| `AI_TIMEOUT_MS` | `240000` | `240000` | `240000` | Request timeout (ms) for cloud inference queuing |
 | `MAX_INPUT_LENGTH`| `2000` | `2000` | `2000` | Max character length |
 | `AI_API_KEY` | *(Secret in `.env`)* | `${AI_API_KEY}` | Secret `campusconnect-secrets` | **AI Service ONLY** |
 
@@ -2092,7 +2089,7 @@ See [`LAB9_VERIFICATION.md`](LAB9_VERIFICATION.md) for full execution logs and d
 | Requirement | Implementation Artifact | Status |
 | :--- | :--- | :---: |
 | Existing Application Preserved | All Lab 3–8 services and MongoDB Atlas intact | **PASS** |
-| Supported Provider & Model | Google Gemini `gemini-3.8-flash` integrated | **PASS** |
+| Supported Provider & Model | Google Gemini `gemini-3.6-flash` verified (`gemini-3.8-flash` compatible) | **PASS** |
 | Environment Configuration | Sanitized `.env.example`, `compose.yaml`, `k8s/` | **PASS** |
 | Dedicated AI Microservice | Standalone `ai-service` on port 3004 | **PASS** |
 | Gateway Routing & Path Preservation | Proxies `/api/ai/*` to `ai-service:3004` | **PASS** |
