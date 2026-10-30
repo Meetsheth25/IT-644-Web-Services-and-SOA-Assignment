@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: ghcr.io/meetsheth25/api-gateway:latest
+          image: ghcr.io/meetsheth25/api-gateway:lab9
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -44,6 +44,11 @@ spec:
                 configMapKeyRef:
                   name: campusconnect-config
                   key: ORDER_SERVICE_URL
+            - name: AI_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: AI_SERVICE_URL
             - name: CORS_ORIGIN
               valueFrom:
                 configMapKeyRef:

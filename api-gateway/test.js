@@ -30,8 +30,10 @@ assert.ok(typeof config.port === 'number', 'config.port must be a number');
 assert.ok(config.services.user, 'config must define user service');
 assert.ok(config.services.product, 'config must define product service');
 assert.ok(config.services.order, 'config must define order service');
+assert.ok(config.services.ai, 'config must define ai service');
 assert.strictEqual(config.services.user.pathPrefix, '/users');
 assert.strictEqual(config.services.product.pathPrefix, '/products');
 assert.strictEqual(config.services.order.pathPrefix, '/orders');
+assert.strictEqual(config.services.ai.pathPrefix, '/api/ai');
 
 console.log('[PASS] All API Gateway unit tests passed successfully.');

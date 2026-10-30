@@ -40,6 +40,10 @@ jobs:
         working-directory: ./order-service
         run: npm ci
 
+      - name: Install Dependencies - AI Service
+        working-directory: ./ai-service
+        run: npm ci
+
       - name: Run Tests - API Gateway
         working-directory: ./api-gateway
         run: npm test
@@ -54,6 +58,10 @@ jobs:
 
       - name: Run Tests - Order Service
         working-directory: ./order-service
+        run: npm test
+
+      - name: Run Tests - AI Service
+        working-directory: ./ai-service
         run: npm test
 
       - name: Set up Docker Buildx
@@ -100,6 +108,13 @@ jobs:
             -t $IMAGE_PREFIX/order-service:latest \
             ./order-service
 
+      - name: Build Docker Image - AI Service
+        run: |
+          docker build \
+            -t $IMAGE_PREFIX/ai-service:${{ github.sha }} \
+            -t $IMAGE_PREFIX/ai-service:latest \
+            ./ai-service
+
       - name: Push Docker Images to GHCR
         if: github.event_name != 'pull_request'
         run: |
@@ -111,6 +126,8 @@ jobs:
           docker push $IMAGE_PREFIX/product-service:latest
           docker push $IMAGE_PREFIX/order-service:${{ github.sha }}
           docker push $IMAGE_PREFIX/order-service:latest
+          docker push $IMAGE_PREFIX/ai-service:${{ github.sha }}
+          docker push $IMAGE_PREFIX/ai-service:latest
 
       - name: Check Kubernetes Access & Deploy
         if: github.event_name != 'pull_request'
@@ -131,12 +148,14 @@ jobs:
             kubectl set image deployment/user-service user-service=$IMAGE_PREFIX/user-service:${{ github.sha }} -n lab8
             kubectl set image deployment/product-service product-service=$IMAGE_PREFIX/product-service:${{ github.sha }} -n lab8
             kubectl set image deployment/order-service order-service=$IMAGE_PREFIX/order-service:${{ github.sha }} -n lab8
+            kubectl set image deployment/ai-service ai-service=$IMAGE_PREFIX/ai-service:${{ github.sha }} -n lab8
 
             echo "Waiting for rollouts to finish..."
             kubectl rollout status deployment/gateway-deployment -n lab8 --timeout=120s
             kubectl rollout status deployment/user-service -n lab8 --timeout=120s
             kubectl rollout status deployment/product-service -n lab8 --timeout=120s
             kubectl rollout status deployment/order-service -n lab8 --timeout=120s
+            kubectl rollout status deployment/ai-service -n lab8 --timeout=120s
 
             echo "Rollout completed successfully!"
           else
@@ -148,6 +167,7 @@ jobs:
             echo "  kubectl set image deployment/user-service user-service=$IMAGE_PREFIX/user-service:${{ github.sha }} -n lab8"
             echo "  kubectl set image deployment/product-service product-service=$IMAGE_PREFIX/product-service:${{ github.sha }} -n lab8"
             echo "  kubectl set image deployment/order-service order-service=$IMAGE_PREFIX/order-service:${{ github.sha }} -n lab8"
+            echo "  kubectl set image deployment/ai-service ai-service=$IMAGE_PREFIX/ai-service:${{ github.sha }} -n lab8"
             echo "  kubectl rollout status deployment/user-service -n lab8"
             echo "=========================================================================="
           fi

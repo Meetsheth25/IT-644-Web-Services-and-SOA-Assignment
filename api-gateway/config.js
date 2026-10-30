@@ -29,6 +29,7 @@ function loadConfig() {
   const defaultUserUrl = isRender ? 'http://campusconnect-user-service:10000' : 'http://localhost:3001';
   const defaultProductUrl = isRender ? 'http://campusconnect-product-service:10000' : 'http://localhost:3002';
   const defaultOrderUrl = isRender ? 'http://campusconnect-order-service:10000' : 'http://localhost:3003';
+  const defaultAiUrl = isRender ? 'http://campusconnect-ai-service:10000' : 'http://localhost:3004';
 
   return {
     port: parseInt(process.env.PORT || process.env.GATEWAY_PORT || '3000', 10),
@@ -50,6 +51,12 @@ function loadConfig() {
         serviceId: 'order-service',
         pathPrefix: '/orders',
         url: formatServiceUrl(process.env.ORDER_SERVICE_URL, defaultOrderUrl)
+      },
+      ai: {
+        name: 'AI Service',
+        serviceId: 'ai-service',
+        pathPrefix: '/api/ai',
+        url: formatServiceUrl(process.env.AI_SERVICE_URL, defaultAiUrl)
       }
     }
   };

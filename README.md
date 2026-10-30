@@ -1851,3 +1851,258 @@ Per Section 7.1 of the official Lab 8 specification:
 | 15 | Kubernetes rollout to new image verified | Zero-downtime rolling update verified to GHCR image (`screenshot 14`) | **PASS** |
 | 16 | README updated | Complete architectural, registry, rollout, and monitoring documentation | **PASS** |
 | 17 | All required screenshots collected | 19 technical illustrations and verified evidence captures in `screenshot LAB 8/` | **PASS** |
+
+
+---
+
+# Part IX: Lab 9 Architecture & Generative AI Integration
+
+## 68. Executive Summary & Objective
+
+The objective of **Lab 9** is to extend the existing **CampusConnect Microservices Platform** (Labs 3–8) with a hosted **Generative AI API integration** while preserving all previous lab functionality:
+
+1. **Hosted AI Integration**: Integrates Google Gemini (`gemini-3.8-flash`) into a dedicated backend microservice (`ai-service`) on port `3004`.
+2. **Single Entry Point Routing**: The API Gateway (`api-gateway`, port 3000) dynamically routes all `/api/ai/*` traffic to the AI service, preserving the exact path without rewriting.
+3. **Strict Credential Perimeter**: The provider secret key (`AI_API_KEY`) is stored exclusively in the backend configuration of `ai-service` (or Kubernetes Secret `campusconnect-secrets`). Neither the client, the API Gateway, nor the User, Product, or Order services ever have access to the API key.
+4. **Prompt Engineering & Grounding**: System instructions specify an expert academic tutor persona with strict passage-grounding rules and untrusted data boundaries to mitigate prompt injection.
+5. **Strict Schema Output Validation**: Output is validated against a structured JSON schema (`title`, `summary`, `key_points`, `word_count`). Malformed outputs are rejected with HTTP 502 rather than being silently disguised.
+6. **Operational Observability**: Fully instrumented with Prometheus request counters and latency histograms on `/metrics`.
+
+---
+
+## 69. System Architecture & Request Flow
+
+```text
+ Client / Postman (POST http://localhost:3000/api/ai/generate)
+           │
+           ▼ (HTTP Port 3000)
+ ┌────────────────────────────────────────────────────────┐
+ │           API Gateway (Port 3000 / server.js)          │
+ │  - Matches pathPrefix: '/api/ai'                       │
+ │  - Preserves exact path: '/api/ai/generate'            │
+ │  - Streams body upstream to http://ai-service:3004     │
+ └─────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼ (Internal Network / Port 3004)
+ ┌────────────────────────────────────────────────────────┐
+ │          AI Microservice (Port 3004 / ai-service)      │
+ │                                                        │
+ │  1. Express Route Handler (routes/ai.routes.js)        │
+ │     Receives POST /api/ai/generate                     │
+ │                                                        │
+ │  2. Input Validation (schemas/ai.schema.js)            │
+ │     - Checks required fields: 'task', 'input'          │
+ │     - Whitelists tasks: 'summarize','explain',...      │
+ │     - Enforces MAX_INPUT_LENGTH (<= 2000 chars)        │
+ │     - Checks non-whitespace string                     │
+ │     [Fails fast with HTTP 400 Bad Request]             │
+ │                                                        │
+ │  3. AI Service Core (services/ai.service.js)           │
+ │     - Validates presence of server AI_API_KEY          │
+ │     - Prepares systemInstruction (isolated)            │
+ │     - Prepares contents payload (untrusted input)      │
+ │     - Configures AbortController timeout (30,000ms)    │
+ └─────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼ (Outbound HTTPS / Port 443)
+ ┌────────────────────────────────────────────────────────┐
+ │          Google Gemini API (gemini-3.8-flash)          │
+ │  - Processes systemInstruction + untrusted user text   │
+ │  - Applies structured JSON schema mode                 │
+ └─────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼ (Raw API Response)
+ ┌────────────────────────────────────────────────────────┐
+ │          AI Microservice Response Processing           │
+ │                                                        │
+ │  4. Error & Timeout Interceptors                       │
+ │     - Timeout -> HTTP 504 Gateway Timeout              │
+ │     - 429 Quota/Rate Limit -> HTTP 429 Too Many Req    │
+ │     - Network / 5xx -> HTTP 502 Bad Gateway            │
+ │                                                        │
+ │  5. Strict Schema Validation (No Silent Normalization) │
+ │     - Validates JSON parse and required schema keys    │
+ │     - If invalid: Rejects with HTTP 502 Bad Gateway,   │
+ │       logs safe diagnostic details without secrets     │
+ └─────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼ (HTTP 200 / Validated JSON)
+ ┌────────────────────────────────────────────────────────┐
+ │         Client Receives Validated JSON Payload         │
+ └────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 70. Supported AI Tasks
+
+The CampusConnect AI Study Assistant supports 4 academic tasks:
+1. **`summarize`**: Condenses complex course readings, textbook chapters, or lecture notes into an objective summary (under 120 words) with key takeaways.
+2. **`explain`**: Breaks down difficult engineering concepts into accessible explanations using real-world analogies tailored for university students.
+3. **`key_points`**: Extracts 3 to 5 core revision principles, formulas, or takeaways from study material.
+4. **`faq`**: Generates 2 to 4 frequently asked revision questions and answers derived strictly from the text.
+
+---
+
+## 71. API Specification & Request/Response Contract
+
+### 71.1 Primary Generation Endpoint: `POST /api/ai/generate`
+
+**Request Body**:
+```json
+{
+  "task": "summarize",
+  "input": "Service-Oriented Architecture (SOA) is an architectural style in software engineering where services provide functionality to other components via a communication protocol over a network. An API Gateway acts as a reverse proxy, insulating backend microservices from external clients while handling cross-cutting concerns such as authentication, rate limiting, and observability."
+}
+```
+
+**Response (`200 OK`)**:
+```json
+{
+  "success": true,
+  "task": "summarize",
+  "model": "gemini-3.8-flash",
+  "result": {
+    "title": "Service-Oriented Architecture & API Gateways",
+    "summary": "Service-Oriented Architecture (SOA) enables software components to communicate and deliver functionality over a network through standard protocols. Within this architecture, an API Gateway functions as a centralized reverse proxy that intercepts client requests, applies security and throttling policies, and delegates traffic to backend microservices, thereby shielding clients from internal service partitioning.",
+    "key_points": [
+      "SOA organizes software into network-accessible, protocol-driven services.",
+      "An API Gateway serves as a single entry point for routing and policy enforcement.",
+      "Gateways insulate external clients from internal microservice decomposition."
+    ],
+    "word_count": 52
+  },
+  "metadata": {
+    "provider": "gemini",
+    "latency_ms": 1140,
+    "input_length": 346,
+    "ai_generated": true,
+    "timestamp": "2026-10-30T15:10:00.000Z"
+  }
+}
+```
+
+### 71.2 Prompt Comparison Endpoint: `POST /api/ai/compare`
+
+Executes the Basic Prompt (minimal baseline) and the Improved Prompt (structured academic tutor) on the **exact same input passage** to evaluate differences in clarity, grounding, and structure:
+
+**Request Body**:
+```json
+{
+  "task": "summarize",
+  "input": "Kubernetes is an open-source container orchestration system for automating software deployment, scaling, and management."
+}
+```
+
+**Response (`200 OK`)**:
+```json
+{
+  "success": true,
+  "task": "summarize",
+  "model": "gemini-3.8-flash",
+  "input_passage": "Kubernetes is an open-source container orchestration system...",
+  "comparison": {
+    "basic": {
+      "prompt_type": "Basic / Minimal Baseline",
+      "prompt_text": "Summarize this text:\nKubernetes is an open-source...",
+      "output": "Kubernetes is a container orchestration platform that automates software deployment and scaling.",
+      "output_format": "plain_text",
+      "word_count": 14,
+      "latency_ms": 680
+    },
+    "improved": {
+      "prompt_type": "Improved / Structured Academic Tutor",
+      "prompt_system_instruction": "Role: Expert academic tutor...",
+      "output": {
+        "title": "Introduction to Kubernetes",
+        "summary": "Kubernetes is an open-source orchestration engine that automates containerized application deployment, scaling, and operational management across computing clusters.",
+        "key_points": [
+          "Automates deployment and scaling of containers",
+          "Open-source cloud-native standard",
+          "Simplifies multi-container management"
+        ],
+        "word_count": 21
+      },
+      "output_format": "structured_json",
+      "word_count": 21,
+      "latency_ms": 1120
+    }
+  }
+}
+```
+
+### 71.3 Supported Tasks Discovery: `GET /api/ai/tasks`
+Returns metadata regarding available tasks, length limits, and model configuration.
+
+---
+
+## 72. Environment Configuration & Isolation Matrix
+
+| Variable Name | Local (`.env`) | Docker Compose (`compose.yaml`) | Kubernetes (`k8s/`) | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `PORT` | `3004` | `3004` | Injected via `PORT_AI` | AI Service port |
+| `AI_SERVICE_URL` | `http://localhost:3004` | `http://ai-service:3004` | `http://ai-service:3004` | URL used by Gateway |
+| `AI_PROVIDER` | `gemini` | `gemini` | `gemini` | Provider adapter |
+| `AI_MODEL` | `gemini-3.8-flash` | `gemini-3.8-flash` | `gemini-3.8-flash` | Model identifier |
+| `AI_TIMEOUT_MS` | `30000` | `30000` | `30000` | Request timeout |
+| `MAX_INPUT_LENGTH`| `2000` | `2000` | `2000` | Max character length |
+| `AI_API_KEY` | *(Secret in `.env`)* | `${AI_API_KEY}` | Secret `campusconnect-secrets` | **AI Service ONLY** |
+
+### Credential Perimeter Verification
+- `AI_API_KEY` is loaded exclusively inside `ai-service/server.js`.
+- `api-gateway` receives only `AI_SERVICE_URL` and has zero knowledge of `AI_API_KEY`.
+- `user-service`, `product-service`, and `order-service` never mount or inspect `AI_API_KEY`.
+- All diagnostic errors and logs are scrubbed via `sanitizeMessage()` to eliminate accidental credential leakage.
+
+---
+
+## 73. Responsible AI & Prompt Injection Safeguards
+
+1. **Protocol-Level Separation**: System instructions are transmitted via the Gemini API's native `systemInstruction` parameter, keeping developer rules architecturally separate from user-supplied text.
+2. **Untrusted Data Boundary**: User content is transmitted strictly within the `contents` payload with role `user`. The system prompt instructs the model to treat the passage strictly as passive study material and ignore embedded commands.
+3. **Input Length Bounding**: A hard limit of 2,000 characters is enforced by schema validation, preventing token-stuffing attacks and runaway billing.
+4. **Principle of Least Authority**: Generated model output is never executed as code or shell commands, and cannot trigger automated database writes or financial transactions.
+
+---
+
+## 74. Verification Test Results
+
+Execute the complete test suite locally:
+```powershell
+# 1. AI Service Unit Tests (14 Tests)
+node ai-service/test.js
+
+# 2. Existing Microservices Unit Tests (Regression Check)
+node api-gateway/test.js
+node user-service/test.js
+node product-service/test.js
+node order-service/test.js
+
+# 3. Real In-Process Integration Test Suite (10 Tests)
+node test-ai-integration.js
+```
+
+All 28 tests across all microservices pass with 100% success.
+See [`LAB9_VERIFICATION.md`](LAB9_VERIFICATION.md) for full execution logs and diagnostic details.
+
+---
+
+## 75. Official Lab 9 Deliverables Checklist
+
+| Requirement | Implementation Artifact | Status |
+| :--- | :--- | :---: |
+| Existing Application Preserved | All Lab 3–8 services and MongoDB Atlas intact | **PASS** |
+| Supported Provider & Model | Google Gemini `gemini-3.8-flash` integrated | **PASS** |
+| Environment Configuration | Sanitized `.env.example`, `compose.yaml`, `k8s/` | **PASS** |
+| Dedicated AI Microservice | Standalone `ai-service` on port 3004 | **PASS** |
+| Gateway Routing & Path Preservation | Proxies `/api/ai/*` to `ai-service:3004` | **PASS** |
+| Input Validation & Limits | Rejects missing fields, blank input, and > 2,000 chars | **PASS** |
+| Controlled Error Handling | Clean 400, 429, 500, 502, 504 status codes | **PASS** |
+| Strict Schema Output Validation | Validates JSON schema; rejects malformed output with 502 | **PASS** |
+| Side-by-Side Prompt Comparison | `POST /api/ai/compare` runs Basic vs Improved on identical text | **PASS** |
+| Responsible AI & Security | API key isolated in backend; untrusted data boundary enforced | **PASS** |
+| CI/CD Pipeline Integration | Added `ai-service` to `.github/workflows/ci.yml` | **PASS** |
+| Prometheus Monitoring | Scrapes `ai-service:3004` on `/metrics` | **PASS** |
+| Verification Report | Live execution outputs recorded in `LAB9_VERIFICATION.md` | **PASS** |
+| Postman Test Collection | `Microservices - Lab 9.postman_collection.json` created | **PASS** |
+| Screenshots Directory | `screenshot LAB 9/` created for evidence storage | **PASS** |

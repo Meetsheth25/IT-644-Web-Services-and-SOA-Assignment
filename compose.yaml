@@ -15,10 +15,12 @@ services:
       - USER_SERVICE_URL=${USER_SERVICE_URL:-http://user-service:3001}
       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:3002}
       - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order-service:3003}
+      - AI_SERVICE_URL=${AI_SERVICE_URL:-http://ai-service:3004}
     depends_on:
       - user-service
       - product-service
       - order-service
+      - ai-service
     networks:
       - campus-network
 
@@ -80,6 +82,28 @@ services:
       - mongodb
       - user-service
       - product-service
+    networks:
+      - campus-network
+
+  # ============================================================================
+  # LAB 9: GENERATIVE AI MICROSERVICE (Internal Network Only)
+  # ============================================================================
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service
+    restart: unless-stopped
+    expose:
+      - "3004"
+    environment:
+      - PORT=3004
+      - AI_SERVICE_PORT=${AI_SERVICE_PORT:-3004}
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - AI_MODEL=${AI_MODEL:-gemini-3.6-flash}
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_TIMEOUT_MS=${AI_TIMEOUT_MS:-240000}
+      - MAX_INPUT_LENGTH=${MAX_INPUT_LENGTH:-2000}
     networks:
       - campus-network
 
